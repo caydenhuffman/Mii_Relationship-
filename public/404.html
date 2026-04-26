@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Redirecting…</title>
+    <script>
+      var pathSegmentsToKeep = 1;
+      var locationToRewrite = window.location;
+      var basePath = locationToRewrite.pathname
+        .split("/")
+        .slice(0, 1 + pathSegmentsToKeep)
+        .join("/");
+      var routePath = locationToRewrite.pathname
+        .slice(1)
+        .split("/")
+        .slice(pathSegmentsToKeep)
+        .join("/")
+        .replace(/&/g, "~and~");
+
+      window.location.replace(
+        locationToRewrite.protocol +
+          "//" +
+          locationToRewrite.hostname +
+          (locationToRewrite.port ? ":" + locationToRewrite.port : "") +
+          basePath +
+          "/?/" +
+          routePath +
+          (locationToRewrite.search
+            ? "&" + locationToRewrite.search.slice(1).replace(/&/g, "~and~")
+            : "") +
+          locationToRewrite.hash,
+      );
+    </script>
+  </head>
+  <body></body>
+  </html>

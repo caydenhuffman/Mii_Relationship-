@@ -1,0 +1,90 @@
+relationship_type,description,meter_min,meter_max,stage,during_fight
+Spouses,Married Miis,-70,-50,Not getting along,Still trying?
+Spouses,Married Miis,-50,-20,Making it work,Making it work?
+Spouses,Married Miis,-20,-10,Happy,Still happy?
+Spouses,Married Miis,-10,10,In love,Still in love?
+Spouses,Married Miis,10,20,Very in love,Still very in love?
+Spouses,Married Miis,20,50,Super in love,Still super in love?
+Spouses,Married Miis,50,70,Soulmates,Still soulmates?
+
+Sweethearts,Dating Miis,-80,-50,Not getting along,Not getting along?
+Sweethearts,Dating Miis,-50,-30,Kinda getting along,Kinda getting along?
+Sweethearts,Dating Miis,-30,-20,Really likes,Still really likes?
+Sweethearts,Dating Miis,-20,20,Falling in love,Still falling in love?
+Sweethearts,Dating Miis,20,30,In love,Still in love?
+Sweethearts,Dating Miis,30,50,Super in love,Still super in love?
+Sweethearts,Dating Miis,50,80,Wants to marry!,Still wants to marry?
+
+Friends,Friendship bond,-100,-60,Not getting along,Not getting along?
+Friends,Friendship bond,-60,-40,Kinda getting along,Kinda getting along?
+Friends,Friendship bond,-40,-20,Friends,Still friends?
+Friends,Friendship bond,-20,20,Good friends,Still good friends?
+Friends,Friendship bond,20,40,Great friends,Still great friends?
+Friends,Friendship bond,40,60,Best friends,Still best friends?
+Friends,Friendship bond,60,100,Ultra friends,Still ultra friends?
+
+Family,Close relatives,-100,-60,Not getting along,
+Family,Close relatives,-60,-40,Kinda getting along,
+Family,Close relatives,-40,-20,Getting along well,
+Family,Close relatives,-20,20,Cares for,
+Family,Close relatives,20,40,Cares a lot for,
+Family,Close relatives,40,60,Cares deeply for,
+Family,Close relatives,60,100,Cherishes,
+
+Relatives,Distant relatives,-100,-60,Not getting along,
+Relatives,Distant relatives,-60,-40,Kinda getting along,
+Relatives,Distant relatives,-40,-20,Getting along well,
+Relatives,Distant relatives,-20,20,Cares for,
+Relatives,Distant relatives,20,40,Cares a lot for,
+Relatives,Distant relatives,40,60,Cares deeply for,
+Relatives,Distant relatives,60,100,Cherishes,
+
+Acquaintances,Just met,-100,-60,Not interested,
+Acquaintances,Just met,-60,-40,Indifferent,
+Acquaintances,Just met,-40,-20,Some interest,
+Acquaintances,Just met,-20,20,Getting familiar,
+Acquaintances,Just met,20,60,Seems like-minded,
+Acquaintances,Just met,60,100,Vibes with,
+Acquaintances,Just met,100,200,Wants to be friends,
+
+Strangers,No relationship,,,No connection,
+
+One-sided love (friend),Romantic feelings toward friend,-100,-60,Giving up,Giving up?
+One-sided love (friend),Romantic feelings toward friend,-60,-40,Close to giving up,Close to giving up?
+One-sided love (friend),Romantic feelings toward friend,-40,-20,Has some hope,Still interested?
+One-sided love (friend),Romantic feelings toward friend,-20,20,Likes a lot,Still likes?
+One-sided love (friend),Romantic feelings toward friend,20,40,Crushing,Still crushing?
+One-sided love (friend),Romantic feelings toward friend,40,60,Head over heels,Still head over heels?
+One-sided love (friend),Romantic feelings toward friend,60,100,Ready to risk it all,Still ready to risk it all?
+
+One-sided love (acquaintance),Romantic feelings toward acquaintance,-100,-60,Giving up,Giving up?
+One-sided love (acquaintance),Romantic feelings toward acquaintance,-60,-40,Close to giving up,Close to giving up?
+One-sided love (acquaintance),Romantic feelings toward acquaintance,-40,-20,Has some hope,Still interested?
+One-sided love (acquaintance),Romantic feelings toward acquaintance,-20,20,Likes a lot,Still likes?
+One-sided love (acquaintance),Romantic feelings toward acquaintance,20,60,Crushing,Still crushing?
+One-sided love (acquaintance),Romantic feelings toward acquaintance,60,100,Head over heels,Still head over heels?
+One-sided love (acquaintance),Romantic feelings toward acquaintance,100,200,Ready to risk it all,Still ready to risk it all?
+
+Ex-spouses,Divorced Miis,-30,-20,Enemies,
+Ex-spouses,Divorced Miis,-20,-10,Tries to avoid,
+Ex-spouses,Divorced Miis,-10,-10,Not speaking,
+Ex-spouses,Divorced Miis,-10,10,No hard feelings,
+Ex-spouses,Divorced Miis,10,20,On good terms,
+Ex-spouses,Divorced Miis,20,60,Still great friends,
+Ex-spouses,Divorced Miis,60,80,Would try again,
+
+Ex-sweethearts,Broke up before marriage,-30,-20,Enemies,
+Ex-sweethearts,Broke up before marriage,-20,-10,Tries to avoid,
+Ex-sweethearts,Broke up before marriage,-10,-10,Not speaking,
+Ex-sweethearts,Broke up before marriage,-10,10,No hard feelings,
+Ex-sweethearts,Broke up before marriage,10,20,On good terms,
+Ex-sweethearts,Broke up before marriage,20,60,Still great friends,
+Ex-sweethearts,Broke up before marriage,60,80,Would try again,
+
+Ex-friends,Falling out,-30,-20,Enemies,
+Ex-friends,Falling out,-20,-10,Tries to avoid,
+Ex-friends,Falling out,-10,-10,Not speaking,
+Ex-friends,Falling out,-10,10,Strained,
+Ex-friends,Falling out,10,20,It's complicated,
+Ex-friends,Falling out,20,60,Thinks about often,
+Ex-friends,Falling out,60,80,Hopes to make up,

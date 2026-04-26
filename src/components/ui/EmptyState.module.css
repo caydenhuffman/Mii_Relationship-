@@ -1,0 +1,20 @@
+.state {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+  text-align: left;
+}
+
+.emoji {
+  font-size: 2rem;
+  margin: 0 0 0.25rem;
+}
+
+.state h3 {
+  margin: 0 0 0.4rem;
+}
+
+.state p {
+  margin: 0;
+  color: var(--text-secondary);
+}

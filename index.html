@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <meta
+      name="description"
+      content="Track Miis, profiles, and directed relationships for Tomodachi Life: Living the Dream."
+    />
+    <script>
+      (function handleGithubPagesRedirect(location) {
+        if (location.search[1] !== "/") {
+          return;
+        }
+
+        const decoded = location.search
+          .slice(1)
+          .split("&")
+          .map(function (segment) {
+            return segment.replace(/~and~/g, "&");
+          })
+          .join("?");
+
+        window.history.replaceState(
+          null,
+          "",
+          location.pathname.slice(0, -1) + decoded + location.hash,
+        );
+      })(window.location);
+    </script>
+    <title>Tomodachi Life Relationship Tracker</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+  </html>
