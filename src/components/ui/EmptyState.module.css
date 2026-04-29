@@ -6,7 +6,9 @@
 }
 
 .emoji {
-  background: linear-gradient(135deg, rgba(247, 202, 109, 0.3), rgba(205, 239, 255, 0.5));
+  background: #fff2bf;
+  border: 2px solid var(--text-primary);
+  box-shadow: 2px 2px 0 0 oklch(0.22 0.02 50);
   border-radius: 20px;
   display: inline-flex;
   font-size: 2rem;

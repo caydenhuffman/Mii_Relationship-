@@ -12,7 +12,7 @@
 }
 
 .value {
-  font-family: "Arial Rounded MT Bold", "Trebuchet MS", sans-serif;
+  font-family: "Fredoka", "Arial Rounded MT Bold", "Trebuchet MS", sans-serif;
   font-size: clamp(2.15rem, 3vw, 2.9rem);
   font-weight: 800;
   margin: 0;

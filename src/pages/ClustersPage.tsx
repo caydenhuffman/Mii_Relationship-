@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { RELATIONSHIP_TYPE_METADATA } from "@/config/relationshipMetadata";
@@ -151,14 +152,17 @@ export function ClustersPage() {
                     <p>{group.members.length} Miis in this cluster.</p>
                   </div>
                   <div className={pageStyles.sectionTitleActions}>
-                    <span className={pageStyles.pill}>{group.mutualLinkCount} mutual links</span>
-                    <button
+                    <span className={`${pageStyles.pill} ${pageStyles.clusterStatPill}`}>
+                      {group.mutualLinkCount} mutual links
+                    </span>
+                    <Button
                       type="button"
-                      className={pageStyles.toggleButton}
+                      variant="ghost"
+                      className={pageStyles.clusterToggleButton}
                       onClick={() => toggleGroupExpanded(group.id)}
                     >
                       {isExpanded ? "Hide details" : "Show details"}
-                    </button>
+                    </Button>
                   </div>
                 </div>
                 <div className={pageStyles.meta}>

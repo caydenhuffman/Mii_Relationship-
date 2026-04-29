@@ -4,7 +4,11 @@ import { MiiFormModal } from "@/components/forms/MiiFormModal";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { getPersonalityGroup, PERSONALITY_GROUPS } from "@/config/personalities";
+import {
+  getPersonalityGroup,
+  PERSONALITY_GROUPS,
+  PERSONALITY_TYPE_COLORS,
+} from "@/config/personalities";
 import { RELATIONSHIP_TYPE_METADATA } from "@/config/relationshipMetadata";
 import {
   buildConnectionCountMap,
@@ -229,26 +233,34 @@ export function MiisPage() {
               <Card key={mii.id} className={pageStyles.miiCard}>
                 <div className={pageStyles.miiCardTop}>
                   <div className={pageStyles.miiIdentityBlock}>
-                    <div className={pageStyles.miiTitleRow}>
-                      <h3>{mii.name}</h3>
+                    <h3>{mii.name}</h3>
+                    <div className={pageStyles.personalityCombo}>
                       <span
-                        className={pageStyles.pill}
+                        className={pageStyles.personalityGroupPill}
                         style={{
-                          background: `${personalityGroup.colorToken}2a`,
-                          color: "var(--text-primary)",
+                          background: personalityGroup.colorToken,
+                          color: "white",
                         }}
                       >
                         {personalityGroup.group}
                       </span>
+                      <span
+                        className={pageStyles.personalityTypePill}
+                        style={{
+                          background: PERSONALITY_TYPE_COLORS[mii.personalityType],
+                          color: "var(--text-primary)",
+                        }}
+                      >
+                        {mii.personalityType}
+                      </span>
                     </div>
-                    <p className={pageStyles.miiPersonality}>{mii.personalityType}</p>
                   </div>
                   <div className={pageStyles.miiMetaGrid}>
                     <div className={pageStyles.miiMetaItem}>
                       <span className={pageStyles.miiMetaLabel}>Level</span>
                       <strong>{mii.level}</strong>
                     </div>
-                    <div className={pageStyles.miiMetaItem}>
+                    <div className={`${pageStyles.miiMetaItem} ${pageStyles.miiMetaItemWide}`}>
                       <span className={pageStyles.miiMetaLabel}>Connections</span>
                       <strong>{connectionCount}</strong>
                     </div>

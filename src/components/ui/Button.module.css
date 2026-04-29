@@ -1,6 +1,6 @@
 .button {
   appearance: none;
-  border: 1px solid transparent;
+  border: 2px solid var(--text-primary);
   border-radius: 999px;
   cursor: pointer;
   display: inline-flex;
@@ -21,7 +21,13 @@
 }
 
 .button:hover {
-  transform: translateY(-1px);
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 0 oklch(0.22 0.02 50);
+}
+
+.button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 0 oklch(0.22 0.02 50);
 }
 
 .button:disabled {
@@ -30,27 +36,25 @@
 }
 
 .primary {
-  background: linear-gradient(135deg, #f48f84, #f8c66f);
-  border-color: rgba(230, 145, 110, 0.48);
-  box-shadow: 0 12px 24px rgba(244, 143, 132, 0.25);
-  color: #6b3f34;
+  background: var(--accent-gold);
+  box-shadow: 4px 4px 0 0 oklch(0.22 0.02 50);
+  color: var(--text-primary);
 }
 
 .secondary {
-  background: linear-gradient(180deg, #ffffff, #fff6ef);
-  border-color: var(--line-soft);
-  box-shadow: var(--shadow-soft);
+  background: var(--surface-panel);
+  box-shadow: 4px 4px 0 0 oklch(0.22 0.02 50);
   color: var(--text-primary);
 }
 
 .ghost {
-  background: rgba(255, 255, 255, 0.72);
-  border-color: rgba(255, 255, 255, 0.88);
+  background: var(--accent-teal);
+  box-shadow: 4px 4px 0 0 oklch(0.22 0.02 50);
   color: var(--text-primary);
 }
 
 .danger {
-  background: linear-gradient(180deg, #fff1f2, #ffe7ea);
-  border-color: rgba(184, 86, 99, 0.22);
+  background: color-mix(in oklab, var(--danger) 18%, white);
+  box-shadow: 4px 4px 0 0 oklch(0.22 0.02 50);
   color: var(--danger);
 }

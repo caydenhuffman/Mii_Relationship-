@@ -20,6 +20,10 @@ export function AppShell({ children }: PropsWithChildren) {
       <header className={styles.header}>
         <div className={styles.brandBlock}>
           <span className={styles.badge}>Tomodachi Life: Living the Dream</span>
+          <div className={styles.brandArt} aria-hidden="true">
+            <div className={styles.brandArtBubble} />
+            <img className={styles.brandArtMii} src={`${import.meta.env.BASE_URL}mymii.png`} alt="" />
+          </div>
           <h1>Relationship Tracker</h1>
           <p>
             A playful island dashboard for Miis, directed feelings, and friend-group

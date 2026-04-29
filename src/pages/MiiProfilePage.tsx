@@ -182,14 +182,10 @@ export function MiiProfilePage() {
     <div className={pageStyles.stack}>
       <div className={pageStyles.pageHeader}>
         <div>
-          <Link className={pageStyles.linkButton} to="/miis">
-            {"<- Back to Miis"}
+          <Link className={pageStyles.inlineBackLink} to="/miis">
+            Back to Miis
           </Link>
           <h2>{mii.name}</h2>
-          <p>
-            See {mii.name}'s strongest connections, inspect both sides of each
-            relationship, and manage everything from one profile.
-          </p>
         </div>
         <div className={pageStyles.toolbar}>
           <Button onClick={() => setIsCreateRelationshipOpen(true)}>Add relationship</Button>
@@ -225,10 +221,6 @@ export function MiiProfilePage() {
           <span className={pageStyles.tag}>{mii.personalityType}</span>
           <span className={pageStyles.tag}>Level {mii.level}</span>
           <span className={pageStyles.tag}>{connectionCount} connections</span>
-        </div>
-        <div className={pageStyles.note}>
-          Relationships are ranked by the current Mii's side first, with the return
-          feeling right underneath for quick comparison.
         </div>
       </Card>
 
