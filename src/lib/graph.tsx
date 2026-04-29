@@ -17,6 +17,11 @@ const DEFAULT_NODE_HEIGHT = 98;
 type FlowNode = Node<{ label: ReactNode; polygonSides?: number }>;
 type FlowEdgeData = {
   hoverLabel: string;
+  relationshipTypes: string[];
+  sourceStageKey: string;
+  reciprocalStageKey?: string;
+  sourceName: string;
+  targetName: string;
 };
 type FlowEdge = Edge<FlowEdgeData>;
 
@@ -203,6 +208,13 @@ function createRelationshipEdge(
     },
     data: {
       hoverLabel,
+      relationshipTypes: reciprocalRelationship
+        ? [relationship.relationshipType, reciprocalRelationship.relationshipType]
+        : [relationship.relationshipType],
+      sourceStageKey: relationship.stageKey,
+      reciprocalStageKey: reciprocalRelationship?.stageKey,
+      sourceName,
+      targetName,
     },
     type: "default",
   };

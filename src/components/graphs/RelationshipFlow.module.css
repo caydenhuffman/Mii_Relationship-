@@ -44,6 +44,26 @@
   display: inline-flex;
   gap: 0.45rem;
   padding: 0.35rem 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.legendItem:hover {
+  background: #f5f2ee;
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 0 oklch(0.22 0.02 50);
+}
+
+.legendItem:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 0 oklch(0.22 0.02 50);
+}
+
+.legendItemDisabled {
+  opacity: 0.5;
+  background: #f8f6f2;
 }
 
 .legendSwatch {
