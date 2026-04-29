@@ -171,7 +171,7 @@ export function IslandProvider({
       status,
       errorMessage,
       islandData,
-      adapterLabel: "Local storage adapter",
+      adapterLabel: adapter.label ?? "Custom storage adapter",
       addMii,
       updateMii,
       deleteMii,

@@ -2,6 +2,7 @@ import { createEmptyIslandData, normalizeIslandData } from "@/lib/island";
 import type { IslandData } from "@/types/domain";
 
 export interface StorageAdapter {
+  label?: string;
   loadIsland(): Promise<IslandData>;
   saveIsland(data: IslandData): Promise<void>;
   subscribe?(listener: (data: IslandData) => void): () => void;
@@ -10,6 +11,7 @@ export interface StorageAdapter {
 const STORAGE_KEY = "tomodachi-life-relationship-tracker:island";
 
 export const localStorageAdapter: StorageAdapter = {
+  label: "Local storage",
   async loadIsland() {
     const raw = window.localStorage.getItem(STORAGE_KEY);
 
@@ -35,6 +37,7 @@ export function createMemoryStorageAdapter(
   let listeners = new Set<(data: IslandData) => void>();
 
   return {
+    label: "Memory storage",
     async loadIsland() {
       return snapshot;
     },

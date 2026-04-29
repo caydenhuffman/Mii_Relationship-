@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
+    "@supabase/supabase-js": "^2.105.1",
     "@xyflow/react": "^12.6.4",
     "dagre": "^0.8.5",
     "papaparse": "^5.5.3",
