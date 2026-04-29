@@ -29,7 +29,7 @@ export function FullGraphPage() {
 
       <RelationshipFlow
         title="Island-wide relationship graph"
-        description="Hover any Mii to highlight their connections and reveal both sides of each relationship."
+        description="Click any Mii to spotlight their network and reveal both sides of each relationship without cluttering the whole map."
         nodes={graph.nodes}
         edges={graph.edges}
         emptyTitle="No graph yet"

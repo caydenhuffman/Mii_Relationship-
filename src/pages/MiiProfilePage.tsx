@@ -21,11 +21,13 @@ import pageStyles from "./Page.module.css";
 function RelationshipRankingList({
   miiName,
   relationships,
+  onNavigateToMii,
   onEdit,
   onDelete,
 }: {
   miiName: string;
   relationships: RankedRelationship[];
+  onNavigateToMii(miiId: string): void;
   onEdit(relationship: Relationship): void;
   onDelete(relationshipId: string): Promise<void>;
 }) {
@@ -56,10 +58,19 @@ function RelationshipRankingList({
               <div
                 key={relationship.outgoingRelationship.id}
                 className={pageStyles.relationshipCard}
+                role="button"
+                tabIndex={0}
                 style={{
                   background: metadata.surfaceColor,
                   borderColor: metadata.surfaceBorder,
                   color: metadata.textColor,
+                }}
+                onClick={() => onNavigateToMii(relationship.counterparty.id)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onNavigateToMii(relationship.counterparty.id);
+                  }
                 }}
               >
                 <div className={pageStyles.itemRow}>
@@ -84,14 +95,20 @@ function RelationshipRankingList({
                     <Button
                       variant="secondary"
                       aria-label={`Edit relationship with ${relationship.counterparty.name}`}
-                      onClick={() => onEdit(relationship.outgoingRelationship)}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onEdit(relationship.outgoingRelationship);
+                      }}
                     >
                       Edit
                     </Button>
                     <Button
                       variant="danger"
                       aria-label={`Delete relationship with ${relationship.counterparty.name}`}
-                      onClick={() => onDelete(relationship.outgoingRelationship.id)}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        void onDelete(relationship.outgoingRelationship.id);
+                      }}
                     >
                       Delete
                     </Button>
@@ -218,6 +235,7 @@ export function MiiProfilePage() {
       <RelationshipRankingList
         miiName={mii.name}
         relationships={relationshipRankings}
+        onNavigateToMii={(nextMiiId) => navigate(`/miis/${nextMiiId}`)}
         onEdit={setEditingRelationship}
         onDelete={async (relationshipId) => {
           if (window.confirm("Delete this reciprocal relationship in both directions?")) {

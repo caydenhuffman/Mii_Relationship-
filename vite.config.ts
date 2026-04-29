@@ -28,6 +28,25 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("@xyflow") || id.includes("dagre")) {
+            return "graph-vendor";
+          }
+
+          if (id.includes("@supabase")) {
+            return "supabase-vendor";
+          }
+
+          if (id.includes("react-hook-form") || id.includes("zod")) {
+            return "form-vendor";
+          }
+        },
+      },
+    },
+  },
   test: {
     environment: "jsdom",
     globals: true,

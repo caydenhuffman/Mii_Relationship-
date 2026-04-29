@@ -1,6 +1,6 @@
 .button {
   appearance: none;
-  border: 0;
+  border: 1px solid transparent;
   border-radius: 999px;
   cursor: pointer;
   display: inline-flex;
@@ -9,10 +9,15 @@
   gap: 0.5rem;
   text-decoration: none;
   font: inherit;
-  font-weight: 700;
-  min-height: 44px;
-  padding: 0.7rem 1.15rem;
-  transition: transform 140ms ease, box-shadow 140ms ease, opacity 140ms ease;
+  font-weight: 800;
+  min-height: 46px;
+  padding: 0.72rem 1.18rem;
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease,
+    opacity 140ms ease,
+    background 140ms ease,
+    border-color 140ms ease;
 }
 
 .button:hover {
@@ -25,23 +30,27 @@
 }
 
 .primary {
-  background: linear-gradient(135deg, var(--accent-coral), var(--accent-gold));
-  box-shadow: 0 12px 24px rgba(255, 122, 83, 0.32);
-  color: white;
+  background: linear-gradient(135deg, #f48f84, #f8c66f);
+  border-color: rgba(230, 145, 110, 0.48);
+  box-shadow: 0 12px 24px rgba(244, 143, 132, 0.25);
+  color: #6b3f34;
 }
 
 .secondary {
-  background: white;
-  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.1);
+  background: linear-gradient(180deg, #ffffff, #fff6ef);
+  border-color: var(--line-soft);
+  box-shadow: var(--shadow-soft);
   color: var(--text-primary);
 }
 
 .ghost {
-  background: rgba(255, 255, 255, 0.68);
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(255, 255, 255, 0.88);
   color: var(--text-primary);
 }
 
 .danger {
-  background: rgba(194, 59, 59, 0.12);
+  background: linear-gradient(180deg, #fff1f2, #ffe7ea);
+  border-color: rgba(184, 86, 99, 0.22);
   color: var(--danger);
 }

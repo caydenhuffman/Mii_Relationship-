@@ -84,6 +84,68 @@ export function buildConnectionCountMap(
   );
 }
 
+export interface MiiRelationshipSummary {
+  friendCount: number;
+  acquaintanceCount: number;
+  familyCount: number;
+  spouseCount: number;
+  sweetheartCount: number;
+}
+
+export function buildMiiRelationshipSummaryMap(
+  miis: Mii[],
+  relationships: Relationship[],
+): Map<string, MiiRelationshipSummary> {
+  const summaryMap = new Map<string, MiiRelationshipSummary>();
+
+  for (const mii of miis) {
+    summaryMap.set(mii.id, {
+      friendCount: 0,
+      acquaintanceCount: 0,
+      familyCount: 0,
+      spouseCount: 0,
+      sweetheartCount: 0,
+    });
+  }
+
+  for (const relationship of relationships) {
+    const summary = summaryMap.get(relationship.sourceMiiId);
+
+    if (!summary) {
+      continue;
+    }
+
+    if (relationship.relationshipType === "Friends") {
+      summary.friendCount += 1;
+      continue;
+    }
+
+    if (relationship.relationshipType === "Acquaintances") {
+      summary.acquaintanceCount += 1;
+      continue;
+    }
+
+    if (
+      relationship.relationshipType === "Family" ||
+      relationship.relationshipType === "Relatives"
+    ) {
+      summary.familyCount += 1;
+      continue;
+    }
+
+    if (relationship.relationshipType === "Spouses") {
+      summary.spouseCount += 1;
+      continue;
+    }
+
+    if (relationship.relationshipType === "Sweethearts") {
+      summary.sweetheartCount += 1;
+    }
+  }
+
+  return summaryMap;
+}
+
 export function isPositiveSocialRelationshipType(relationshipType: RelationshipType) {
   return RELATIONSHIP_TYPE_METADATA[relationshipType].positiveSocial;
 }

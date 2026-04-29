@@ -19,8 +19,18 @@ describe("MiisPage", () => {
     await user.type(screen.getByLabelText(/Current level/i), "9");
     await user.click(screen.getByRole("button", { name: /create mii/i }));
 
-    expect(await screen.findByText("Peach")).toBeInTheDocument();
-    expect(screen.getByText("0 connections")).toBeInTheDocument();
+    const peachHeading = await screen.findByText("Peach");
+    const peachCard = peachHeading.closest("section");
+
+    expect(peachHeading).toBeInTheDocument();
+    expect(peachCard).not.toBeNull();
+    expect(within(peachCard!).getByText("Connections")).toBeInTheDocument();
+    expect(within(peachCard!).getByText("0")).toBeInTheDocument();
+    expect(within(peachCard!).getByText(/No notable relationships yet\./i)).toBeInTheDocument();
+    expect(screen.queryByText("0 friends")).not.toBeInTheDocument();
+    expect(screen.queryByText("0 acquaintances")).not.toBeInTheDocument();
+    expect(screen.queryByText("0 family")).not.toBeInTheDocument();
+    expect(screen.queryByText("0 romance")).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /edit peach/i }));
     const modalName = screen.getByLabelText(/^Name$/i);
@@ -32,6 +42,7 @@ describe("MiisPage", () => {
   });
 
   it("filters Miis by name and personality and supports sorting", async () => {
+    window.localStorage.clear();
     const { user } = renderWithIsland({
       path: "/miis",
       route: "/miis",
@@ -57,5 +68,20 @@ describe("MiisPage", () => {
     const sortedCards = screen.getAllByRole("heading", { level: 3 });
     expect(sortedCards[0]).toHaveTextContent("Alice");
     expect(sortedCards.at(-1)).toHaveTextContent("Frank");
+    expect(
+      within(sortedCards[0].closest("section")!).getByText("1 sweetheart"),
+    ).toBeInTheDocument();
+
+    expect(
+      JSON.parse(
+        window.localStorage.getItem(
+          "tomodachi-life-relationship-tracker:mii-page-preferences",
+        ) ?? "{}",
+      ),
+    ).toMatchObject({
+      searchValue: "",
+      personalityFilter: "all",
+      sortMode: "added",
+    });
   });
 });

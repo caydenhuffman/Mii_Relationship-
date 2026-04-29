@@ -1,23 +1,76 @@
-import { useDeferredValue, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MiiFormModal } from "@/components/forms/MiiFormModal";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getPersonalityGroup, PERSONALITY_GROUPS } from "@/config/personalities";
-import { buildConnectionCountMap } from "@/lib/analytics";
+import { RELATIONSHIP_TYPE_METADATA } from "@/config/relationshipMetadata";
+import {
+  buildConnectionCountMap,
+  buildMiiRelationshipSummaryMap,
+} from "@/lib/analytics";
 import { useIsland } from "@/hooks/useIsland";
 import type { Mii } from "@/types/domain";
 import pageStyles from "./Page.module.css";
 
 type SortMode = "alphabetical" | "added";
+const MII_PAGE_PREFERENCES_KEY = "tomodachi-life-relationship-tracker:mii-page-preferences";
+
+function readSavedPreferences() {
+  if (typeof window === "undefined") {
+    return {
+      searchValue: "",
+      personalityFilter: "all",
+      sortMode: "alphabetical" as SortMode,
+    };
+  }
+
+  try {
+    const raw = window.localStorage.getItem(MII_PAGE_PREFERENCES_KEY);
+
+    if (!raw) {
+      return {
+        searchValue: "",
+        personalityFilter: "all",
+        sortMode: "alphabetical" as SortMode,
+      };
+    }
+
+    const parsed = JSON.parse(raw) as {
+      searchValue?: string;
+      personalityFilter?: string;
+      sortMode?: SortMode;
+    };
+
+    return {
+      searchValue: parsed.searchValue ?? "",
+      personalityFilter: parsed.personalityFilter ?? "all",
+      sortMode:
+        parsed.sortMode === "added" || parsed.sortMode === "alphabetical"
+          ? parsed.sortMode
+          : ("alphabetical" as SortMode),
+    };
+  } catch {
+    return {
+      searchValue: "",
+      personalityFilter: "all",
+      sortMode: "alphabetical" as SortMode,
+    };
+  }
+}
+
+function pluralize(count: number, singular: string, plural = `${singular}s`) {
+  return `${count} ${count === 1 ? singular : plural}`;
+}
 
 export function MiisPage() {
   const navigate = useNavigate();
   const { islandData, addMii, updateMii, status } = useIsland();
-  const [searchValue, setSearchValue] = useState("");
-  const [personalityFilter, setPersonalityFilter] = useState("all");
-  const [sortMode, setSortMode] = useState<SortMode>("alphabetical");
+  const savedPreferences = useMemo(() => readSavedPreferences(), []);
+  const [searchValue, setSearchValue] = useState(savedPreferences.searchValue);
+  const [personalityFilter, setPersonalityFilter] = useState(savedPreferences.personalityFilter);
+  const [sortMode, setSortMode] = useState<SortMode>(savedPreferences.sortMode);
   const [createOpen, setCreateOpen] = useState(false);
   const [editingMii, setEditingMii] = useState<Mii | undefined>();
   const deferredSearchValue = useDeferredValue(searchValue);
@@ -44,6 +97,21 @@ export function MiisPage() {
     () => buildConnectionCountMap(islandData.miis, islandData.relationships),
     [islandData.miis, islandData.relationships],
   );
+  const relationshipSummaryByMiiId = useMemo(
+    () => buildMiiRelationshipSummaryMap(islandData.miis, islandData.relationships),
+    [islandData.miis, islandData.relationships],
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.localStorage.setItem(
+      MII_PAGE_PREFERENCES_KEY,
+      JSON.stringify({ searchValue, personalityFilter, sortMode }),
+    );
+  }, [personalityFilter, searchValue, sortMode]);
 
   if (status === "loading") {
     return <p>Loading island data...</p>;
@@ -112,13 +180,57 @@ export function MiisPage() {
           {filteredMiis.map((mii) => {
             const personalityGroup = getPersonalityGroup(mii.personalityType);
             const connectionCount = connectionCountByMiiId.get(mii.id) ?? 0;
+            const relationshipSummary = relationshipSummaryByMiiId.get(mii.id);
+            const relationshipBadges = [
+              relationshipSummary?.friendCount
+                ? {
+                    key: "friends",
+                    label: pluralize(relationshipSummary.friendCount, "friend"),
+                    metadata: RELATIONSHIP_TYPE_METADATA.Friends,
+                  }
+                : null,
+              relationshipSummary?.acquaintanceCount
+                ? {
+                    key: "acquaintances",
+                    label: pluralize(
+                      relationshipSummary.acquaintanceCount,
+                      "acquaintance",
+                    ),
+                    metadata: RELATIONSHIP_TYPE_METADATA.Acquaintances,
+                  }
+                : null,
+              relationshipSummary?.familyCount
+                ? {
+                    key: "family",
+                    label: pluralize(relationshipSummary.familyCount, "family"),
+                    metadata: RELATIONSHIP_TYPE_METADATA.Family,
+                  }
+                : null,
+              relationshipSummary?.spouseCount
+                ? {
+                    key: "spouses",
+                    label: pluralize(relationshipSummary.spouseCount, "spouse"),
+                    metadata: RELATIONSHIP_TYPE_METADATA.Spouses,
+                  }
+                : null,
+              relationshipSummary?.sweetheartCount
+                ? {
+                    key: "sweethearts",
+                    label: pluralize(
+                      relationshipSummary.sweetheartCount,
+                      "sweetheart",
+                    ),
+                    metadata: RELATIONSHIP_TYPE_METADATA.Sweethearts,
+                  }
+                : null,
+            ].filter((value): value is NonNullable<typeof value> => Boolean(value));
 
             return (
-              <Card key={mii.id}>
-                <div className={pageStyles.itemRow}>
-                  <div>
-                    <h3>{mii.name}</h3>
-                    <div className={pageStyles.meta}>
+              <Card key={mii.id} className={pageStyles.miiCard}>
+                <div className={pageStyles.miiCardTop}>
+                  <div className={pageStyles.miiIdentityBlock}>
+                    <div className={pageStyles.miiTitleRow}>
+                      <h3>{mii.name}</h3>
                       <span
                         className={pageStyles.pill}
                         style={{
@@ -128,12 +240,40 @@ export function MiisPage() {
                       >
                         {personalityGroup.group}
                       </span>
-                      <span className={pageStyles.tag}>{mii.personalityType}</span>
-                      <span className={pageStyles.tag}>Level {mii.level}</span>
-                      <span className={pageStyles.tag}>{connectionCount} connections</span>
+                    </div>
+                    <p className={pageStyles.miiPersonality}>{mii.personalityType}</p>
+                  </div>
+                  <div className={pageStyles.miiMetaGrid}>
+                    <div className={pageStyles.miiMetaItem}>
+                      <span className={pageStyles.miiMetaLabel}>Level</span>
+                      <strong>{mii.level}</strong>
+                    </div>
+                    <div className={pageStyles.miiMetaItem}>
+                      <span className={pageStyles.miiMetaLabel}>Connections</span>
+                      <strong>{connectionCount}</strong>
                     </div>
                   </div>
                 </div>
+
+                {relationshipBadges.length > 0 ? (
+                  <div className={pageStyles.miiBadgeRow}>
+                    {relationshipBadges.map((badge) => (
+                      <span
+                        key={badge.key}
+                        className={pageStyles.relationshipBadge}
+                        style={{
+                          background: badge.metadata.surfaceColor,
+                          borderColor: badge.metadata.surfaceBorder,
+                          color: badge.metadata.textColor,
+                        }}
+                      >
+                        {badge.label}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className={pageStyles.miiCardNote}>No notable relationships yet.</p>
+                )}
 
                 <div className={pageStyles.toolbar}>
                   <Button

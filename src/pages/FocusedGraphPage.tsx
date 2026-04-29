@@ -59,7 +59,7 @@ export function FocusedGraphPage() {
 
       <RelationshipFlow
         title="Focused relationship graph"
-        description="Hover a Mii to spotlight their connections. Each surrounding node summarizes how that Mii and the selected Mii feel about each other."
+        description="Click a Mii to spotlight their connections. Each surrounding node summarizes how that Mii and the selected Mii feel about each other."
         nodes={graph.nodes}
         edges={graph.edges}
         emptyTitle="Pick a Mii to focus on"

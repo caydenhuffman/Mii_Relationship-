@@ -20,6 +20,16 @@ type FlowEdgeData = {
 };
 type FlowEdge = Edge<FlowEdgeData>;
 
+const RELATIONSHIP_VISUAL_PRIORITY = {
+  oneSidedLove: 600,
+  romance: 500,
+  family: 400,
+  friendship: 300,
+  acquaintance: 200,
+  ex: 100,
+  stranger: 0,
+} as const;
+
 function createMiiNode(mii: Mii): FlowNode {
   return {
     id: mii.id,
@@ -37,11 +47,11 @@ function createMiiNode(mii: Mii): FlowNode {
     style: {
       width: DEFAULT_NODE_WIDTH,
       minHeight: DEFAULT_NODE_HEIGHT,
-      borderRadius: 20,
-      border: "1px solid rgba(87, 61, 72, 0.14)",
+      borderRadius: 18,
+      border: "1px solid rgba(124, 93, 86, 0.12)",
       background:
-        "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(255,247,244,0.98) 100%)",
-      boxShadow: "0 12px 24px rgba(87, 61, 72, 0.08)",
+        "linear-gradient(180deg, rgba(255,255,255,0.99) 0%, rgba(255,250,244,0.99) 100%)",
+      boxShadow: "0 10px 20px rgba(145, 114, 92, 0.08)",
       padding: "12px",
     },
   };
@@ -72,7 +82,7 @@ function createFocusedRelationshipNode(
           <strong>{mii.name}</strong>
           {outgoingRelationship ? (
             <>
-              <span>{`${mii.name} → ${selectedMii.name}`}</span>
+              <span>{`${mii.name} -> ${selectedMii.name}`}</span>
               <span>
                 {outgoingRelationship.relationshipType}:{" "}
                 {getRelationshipStageLabel(outgoingRelationship.stageKey)}
@@ -81,7 +91,7 @@ function createFocusedRelationshipNode(
           ) : null}
           {incomingRelationship ? (
             <>
-              <span>{`${mii.name} ← ${selectedMii.name}`}</span>
+              <span>{`${mii.name} <- ${selectedMii.name}`}</span>
               <span>
                 {incomingRelationship.relationshipType}:{" "}
                 {getRelationshipStageLabel(incomingRelationship.stageKey)}
@@ -95,11 +105,11 @@ function createFocusedRelationshipNode(
     style: {
       width: 280,
       minHeight: 152,
-      borderRadius: 20,
-      border: "1px solid rgba(87, 61, 72, 0.14)",
+      borderRadius: 18,
+      border: "1px solid rgba(124, 93, 86, 0.12)",
       background:
-        "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(255,247,244,0.98) 100%)",
-      boxShadow: "0 12px 24px rgba(87, 61, 72, 0.08)",
+        "linear-gradient(180deg, rgba(255,255,255,0.99) 0%, rgba(255,250,244,0.99) 100%)",
+      boxShadow: "0 10px 20px rgba(145, 114, 92, 0.08)",
       padding: "12px",
     },
   };
@@ -113,20 +123,45 @@ function buildPairKey(relationship: Relationship) {
   return `pair:${[relationship.sourceMiiId, relationship.targetMiiId].sort().join("|")}`;
 }
 
+function getDominantRelationshipMetadata(
+  relationship: Relationship,
+  reciprocalRelationship?: Relationship,
+) {
+  const candidates = [
+    RELATIONSHIP_TYPE_METADATA[relationship.relationshipType],
+    reciprocalRelationship
+      ? RELATIONSHIP_TYPE_METADATA[reciprocalRelationship.relationshipType]
+      : undefined,
+  ].filter(
+    (
+      candidate,
+    ): candidate is (typeof RELATIONSHIP_TYPE_METADATA)[keyof typeof RELATIONSHIP_TYPE_METADATA] =>
+      Boolean(candidate),
+  );
+
+  return candidates.sort(
+    (left, right) =>
+      RELATIONSHIP_VISUAL_PRIORITY[right.family] -
+      RELATIONSHIP_VISUAL_PRIORITY[left.family],
+  )[0];
+}
+
 function createRelationshipEdge(
   relationship: Relationship,
   reciprocalRelationship: Relationship | undefined,
   miiMap: Map<string, Mii>,
 ): FlowEdge {
-  const metadata = RELATIONSHIP_TYPE_METADATA[relationship.relationshipType];
+  const metadata =
+    getDominantRelationshipMetadata(relationship, reciprocalRelationship) ??
+    RELATIONSHIP_TYPE_METADATA[relationship.relationshipType];
   const sourceName = miiMap.get(relationship.sourceMiiId)?.name ?? relationship.sourceMiiId;
   const targetName = miiMap.get(relationship.targetMiiId)?.name ?? relationship.targetMiiId;
-  const hoverLabel = `${sourceName} → ${targetName}: ${relationship.relationshipType} (${getRelationshipStageLabel(relationship.stageKey)})${
+  const hoverLabel = `${sourceName} -> ${targetName}: ${relationship.relationshipType} (${getRelationshipStageLabel(relationship.stageKey)})${
     reciprocalRelationship
       ? ` | ${
           miiMap.get(reciprocalRelationship.sourceMiiId)?.name ??
           reciprocalRelationship.sourceMiiId
-        } → ${
+        } -> ${
           miiMap.get(reciprocalRelationship.targetMiiId)?.name ??
           reciprocalRelationship.targetMiiId
         }: ${reciprocalRelationship.relationshipType} (${getRelationshipStageLabel(
@@ -186,6 +221,7 @@ function collapseRelationshipPairs(miis: Mii[], relationships: Relationship[]) {
       relationship,
     );
   }
+
   for (const relationship of relationships) {
     const reciprocal = relationshipByPairKey.get(
       `${relationship.targetMiiId}|${relationship.sourceMiiId}`,
@@ -281,10 +317,10 @@ function createClusterNode(mii: Mii, polygonSides: number): FlowNode {
       width: 80,
       height: 80,
       borderRadius: "50%",
-      border: "2px solid rgba(87, 61, 72, 0.16)",
+      border: "2px solid rgba(124, 93, 86, 0.16)",
       background:
-        "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(255,247,244,0.98) 100%)",
-      boxShadow: "0 4px 12px rgba(87, 61, 72, 0.1)",
+        "linear-gradient(180deg, rgba(255,255,255,0.99) 0%, rgba(255,250,244,0.99) 100%)",
+      boxShadow: "0 8px 18px rgba(145, 114, 92, 0.1)",
       padding: "6px",
     },
   };
@@ -335,7 +371,7 @@ function createClusterEdge(
     },
     style: {
       stroke: metadata.color,
-      strokeWidth: isCrush ? 3.2 : 2.0,
+      strokeWidth: isCrush ? 3.2 : 2,
       strokeDasharray: isCrush ? "4 2" : "0",
     },
     data: {
@@ -358,8 +394,8 @@ export function buildClusterOverviewGraph(members: Mii[], relationships: Relatio
   const centerX = 400;
   const centerY = 250;
 
-  const nodes = members.map((mii, i) => {
-    const angle = (2 * Math.PI * i) / n - Math.PI / 2; // Start from top
+  const nodes = members.map((mii, index) => {
+    const angle = (2 * Math.PI * index) / n - Math.PI / 2;
     const x = centerX + radius * Math.cos(angle);
     const y = centerY + radius * Math.sin(angle);
     return {
@@ -374,12 +410,14 @@ export function buildClusterOverviewGraph(members: Mii[], relationships: Relatio
     const sourceNode = nodeById.get(relationship.sourceMiiId);
     const targetNode = nodeById.get(relationship.targetMiiId);
 
-    const sourceHandle = sourceNode && targetNode
-      ? `${getHandleSide(sourceNode.position, targetNode.position)}-source`
-      : "right-source";
-    const targetHandle = sourceNode && targetNode
-      ? `${getHandleSide(targetNode.position, sourceNode.position)}-target`
-      : "left-target";
+    const sourceHandle =
+      sourceNode && targetNode
+        ? `${getHandleSide(sourceNode.position, targetNode.position)}-source`
+        : "right-source";
+    const targetHandle =
+      sourceNode && targetNode
+        ? `${getHandleSide(targetNode.position, sourceNode.position)}-target`
+        : "left-target";
 
     return createClusterEdge(relationship, sourceHandle, targetHandle);
   });
@@ -404,6 +442,7 @@ export function buildFocusedRelationshipGraph(
 
   const filteredMiis = miis.filter((mii) => includedMiiIds.has(mii.id));
   const relationshipByPairKey = new Map<string, Relationship>();
+
   for (const relationship of filteredRelationships) {
     relationshipByPairKey.set(
       `${relationship.sourceMiiId}|${relationship.targetMiiId}`,

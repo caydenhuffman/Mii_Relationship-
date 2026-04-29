@@ -37,9 +37,9 @@ describe("graph builders", () => {
     render(<>{bobNode?.data.label}</>);
 
     expect(screen.getByText("Bob")).toBeInTheDocument();
-    expect(screen.getByText("Bob → Alice")).toBeInTheDocument();
+    expect(screen.getByText("Bob -> Alice")).toBeInTheDocument();
     expect(screen.getByText("Friends: Great friends")).toBeInTheDocument();
-    expect(screen.getByText("Bob ← Alice")).toBeInTheDocument();
+    expect(screen.getByText("Bob <- Alice")).toBeInTheDocument();
   });
 
   it("builds a cluster overview graph for a set of cluster members", () => {

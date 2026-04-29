@@ -26,7 +26,8 @@ export function RelationshipFlow({
   emptyTitle,
   emptyDescription,
 }: RelationshipFlowProps) {
-  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const activeNodeId = selectedNodeId;
 
   const connectedEdgeIds = useMemo(
     () =>
@@ -34,33 +35,33 @@ export function RelationshipFlow({
         edges
           .filter(
             (edge) =>
-              hoveredNodeId &&
-              (edge.source === hoveredNodeId || edge.target === hoveredNodeId),
+              activeNodeId &&
+              (edge.source === activeNodeId || edge.target === activeNodeId),
           )
           .map((edge) => edge.id),
       ),
-    [edges, hoveredNodeId],
+    [activeNodeId, edges],
   );
 
   const connectedNodeIds = useMemo(() => {
-    if (!hoveredNodeId) {
+    if (!activeNodeId) {
       return new Set<string>();
     }
 
-    const nextNodeIds = new Set<string>([hoveredNodeId]);
+    const nextNodeIds = new Set<string>([activeNodeId]);
 
     for (const edge of edges) {
-      if (edge.source === hoveredNodeId) {
+      if (edge.source === activeNodeId) {
         nextNodeIds.add(edge.target);
       }
 
-      if (edge.target === hoveredNodeId) {
+      if (edge.target === activeNodeId) {
         nextNodeIds.add(edge.source);
       }
     }
 
     return nextNodeIds;
-  }, [edges, hoveredNodeId]);
+  }, [activeNodeId, edges]);
 
   const displayNodes = useMemo(
     () =>
@@ -68,18 +69,18 @@ export function RelationshipFlow({
         ...node,
         style: {
           ...node.style,
-          opacity: hoveredNodeId
+          opacity: activeNodeId
             ? connectedNodeIds.has(node.id)
               ? 1
-              : 0.28
+              : 0.24
             : 1,
           boxShadow:
-            hoveredNodeId && node.id === hoveredNodeId
-              ? "0 0 0 4px rgba(239, 134, 176, 0.28), 0 14px 28px rgba(87, 61, 72, 0.12)"
+            activeNodeId && node.id === activeNodeId
+              ? "0 0 0 4px rgba(109, 200, 200, 0.2), 0 16px 30px rgba(109, 133, 168, 0.16)"
               : node.style?.boxShadow,
         },
       })),
-    [connectedNodeIds, hoveredNodeId, nodes],
+    [activeNodeId, connectedNodeIds, nodes],
   );
 
   const displayEdges = useMemo(
@@ -90,17 +91,17 @@ export function RelationshipFlow({
         return {
           ...edge,
           label:
-            hoveredNodeId && isConnected
+            activeNodeId && isConnected
               ? ((edge.data as { hoverLabel?: string } | undefined)?.hoverLabel ?? edge.label)
               : undefined,
           style: {
             ...edge.style,
-            opacity: hoveredNodeId ? (isConnected ? 1 : 0.12) : 0.72,
-            strokeWidth: hoveredNodeId ? (isConnected ? 3.8 : 1.4) : edge.style?.strokeWidth,
+            opacity: activeNodeId ? (isConnected ? 1 : 0.1) : 0.7,
+            strokeWidth: activeNodeId ? (isConnected ? 3.8 : 1.4) : edge.style?.strokeWidth,
           },
         };
       }),
-    [connectedEdgeIds, edges, hoveredNodeId],
+    [activeNodeId, connectedEdgeIds, edges],
   );
 
   if (nodes.length === 0) {
@@ -128,6 +129,12 @@ export function RelationshipFlow({
         </div>
       </div>
 
+      <div className={styles.graphHint}>
+        {activeNodeId
+          ? "Click the same node again, or click empty space, to clear the spotlight."
+          : "Click any Mii node to spotlight their connections and reveal relationship details."}
+      </div>
+
       <div className={styles.canvas}>
         <ReactFlow
           fitView
@@ -140,13 +147,20 @@ export function RelationshipFlow({
           nodesFocusable={false}
           edgesFocusable={false}
           onlyRenderVisibleElements
+          selectionOnDrag={false}
+          zoomOnDoubleClick={false}
           minZoom={0.45}
           maxZoom={1.4}
           fitViewOptions={{ padding: 0.2 }}
           proOptions={{ hideAttribution: true }}
-          onNodeMouseEnter={(_, node) => setHoveredNodeId(node.id)}
-          onNodeMouseLeave={() => setHoveredNodeId(null)}
-          onPaneMouseLeave={() => setHoveredNodeId(null)}
+          onNodeClick={(_, node) => {
+            setSelectedNodeId((currentValue) =>
+              currentValue === node.id ? null : node.id,
+            );
+          }}
+          onPaneClick={() => {
+            setSelectedNodeId(null);
+          }}
         >
           <Background gap={18} color="rgba(121, 93, 103, 0.08)" />
           <Controls />
