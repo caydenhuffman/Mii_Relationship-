@@ -8,7 +8,6 @@ import {
   getRelationshipStageLabel,
   isPositiveSocialRelationshipType,
 } from "@/lib/analytics";
-import { findReciprocalRelationship } from "@/lib/islandMutations";
 import type { Mii, Relationship } from "@/types/domain";
 import styles from "@/components/graphs/RelationshipFlow.module.css";
 
@@ -51,15 +50,13 @@ function createMiiNode(mii: Mii): FlowNode {
 function createFocusedRelationshipNode(
   mii: Mii,
   selectedMii: Mii,
-  relationships: Relationship[],
+  relationshipByPairKey: Map<string, Relationship>,
 ): FlowNode {
-  const outgoingRelationship = relationships.find(
-    (relationship) =>
-      relationship.sourceMiiId === mii.id && relationship.targetMiiId === selectedMii.id,
+  const outgoingRelationship = relationshipByPairKey.get(
+    `${mii.id}|${selectedMii.id}`,
   );
-  const incomingRelationship = relationships.find(
-    (relationship) =>
-      relationship.sourceMiiId === selectedMii.id && relationship.targetMiiId === mii.id,
+  const incomingRelationship = relationshipByPairKey.get(
+    `${selectedMii.id}|${mii.id}`,
   );
 
   if (!outgoingRelationship && !incomingRelationship) {
@@ -180,13 +177,30 @@ function collapseRelationshipPairs(miis: Mii[], relationships: Relationship[]) {
   const consumed = new Set<string>();
   const edges: FlowEdge[] = [];
   const miiMap = new Map(miis.map((mii) => [mii.id, mii]));
+  const reciprocalByRelationshipId = new Map<string, Relationship>();
+  const relationshipByPairKey = new Map<string, Relationship>();
+
+  for (const relationship of relationships) {
+    relationshipByPairKey.set(
+      `${relationship.sourceMiiId}|${relationship.targetMiiId}`,
+      relationship,
+    );
+  }
+  for (const relationship of relationships) {
+    const reciprocal = relationshipByPairKey.get(
+      `${relationship.targetMiiId}|${relationship.sourceMiiId}`,
+    );
+    if (reciprocal) {
+      reciprocalByRelationshipId.set(relationship.id, reciprocal);
+    }
+  }
 
   for (const relationship of relationships) {
     if (consumed.has(relationship.id)) {
       continue;
     }
 
-    const reciprocalRelationship = findReciprocalRelationship(relationships, relationship);
+    const reciprocalRelationship = reciprocalByRelationshipId.get(relationship.id);
     edges.push(createRelationshipEdge(relationship, reciprocalRelationship, miiMap));
     consumed.add(relationship.id);
 
@@ -327,7 +341,7 @@ function createClusterEdge(
     data: {
       hoverLabel: metadata.shortLabel,
     },
-    type: "straight",
+    type: "default",
   };
 }
 
@@ -389,11 +403,18 @@ export function buildFocusedRelationshipGraph(
   );
 
   const filteredMiis = miis.filter((mii) => includedMiiIds.has(mii.id));
+  const relationshipByPairKey = new Map<string, Relationship>();
+  for (const relationship of filteredRelationships) {
+    relationshipByPairKey.set(
+      `${relationship.sourceMiiId}|${relationship.targetMiiId}`,
+      relationship,
+    );
+  }
 
   return layoutElements(
     filteredMiis.map((mii) =>
       selectedMii && mii.id !== selectedMii.id
-        ? createFocusedRelationshipNode(mii, selectedMii, filteredRelationships)
+        ? createFocusedRelationshipNode(mii, selectedMii, relationshipByPairKey)
         : createMiiNode(mii),
     ),
     collapseRelationshipPairs(filteredMiis, filteredRelationships),

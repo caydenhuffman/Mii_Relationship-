@@ -6,15 +6,14 @@ import pageStyles from "./Page.module.css";
 
 export function FullGraphPage() {
   const { islandData, status } = useIsland();
-
-  if (status === "loading") {
-    return <p>Loading island data...</p>;
-  }
-
   const graph = useMemo(
     () => buildFullRelationshipGraph(islandData.miis, islandData.relationships),
     [islandData.miis, islandData.relationships],
   );
+
+  if (status === "loading") {
+    return <p>Loading island data...</p>;
+  }
 
   return (
     <div className={pageStyles.stack}>

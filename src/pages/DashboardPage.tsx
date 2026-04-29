@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -9,13 +10,18 @@ import pageStyles from "./Page.module.css";
 
 export function DashboardPage() {
   const { islandData, status } = useIsland();
+  const summary = useMemo(
+    () => buildDashboardSummary(islandData.miis, islandData.relationships),
+    [islandData.miis, islandData.relationships],
+  );
+  const groups = useMemo(
+    () => findFriendGroups(islandData.miis, islandData.relationships),
+    [islandData.miis, islandData.relationships],
+  );
 
   if (status === "loading") {
     return <p>Loading island data...</p>;
   }
-
-  const summary = buildDashboardSummary(islandData.miis, islandData.relationships);
-  const groups = findFriendGroups(islandData.miis, islandData.relationships);
 
   return (
     <div className={pageStyles.stack}>

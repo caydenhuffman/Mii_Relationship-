@@ -19,13 +19,7 @@ function formatClusterName(names: string[]) {
 export function ClustersPage() {
   const { islandData, status } = useIsland();
   const [excludeLowStages, setExcludeLowStages] = useState(false);
-
-  if (status === "loading") {
-    return <p>Loading island data...</p>;
-  }
-
   const [expandedGroupIds, setExpandedGroupIds] = useState<Set<string>>(new Set());
-
   const groups = useMemo(
     () =>
       findFriendGroups(islandData.miis, islandData.relationships, {
@@ -33,38 +27,68 @@ export function ClustersPage() {
       }),
     [excludeLowStages, islandData.miis, islandData.relationships],
   );
-  const groupedMiiIds = new Set(groups.flatMap((group) => group.memberIds));
+  const groupedMiiIds = useMemo(
+    () => new Set(groups.flatMap((group) => group.memberIds)),
+    [groups],
+  );
   const lonerCount = islandData.miis.length - groupedMiiIds.size;
-
   const relationshipsByGroup = useMemo(() => {
-    const map = new Map<string, Relationship[]>();
-
+    const groupMemberSetById = new Map<string, Set<string>>();
     for (const group of groups) {
-      map.set(
-        group.id,
-        islandData.relationships.filter((relationship) => {
-          if (
-            !group.memberIds.includes(relationship.sourceMiiId) ||
-            !group.memberIds.includes(relationship.targetMiiId)
-          ) {
-            return false;
-          }
+      groupMemberSetById.set(group.id, new Set(group.memberIds));
+    }
+    const map = new Map<string, Relationship[]>(
+      groups.map((group) => [group.id, [] as Relationship[]]),
+    );
 
-          if (!RELATIONSHIP_TYPE_METADATA[relationship.relationshipType].positiveSocial) {
-            return false;
-          }
+    for (const relationship of islandData.relationships) {
+      if (!RELATIONSHIP_TYPE_METADATA[relationship.relationshipType].positiveSocial) {
+        continue;
+      }
 
-          if (!excludeLowStages) {
-            return true;
-          }
+      if (excludeLowStages && getRelationshipStageIndex(relationship.stageKey) < 2) {
+        continue;
+      }
 
-          return getRelationshipStageIndex(relationship.stageKey) >= 2;
-        }),
-      );
+      for (const [groupId, memberIds] of groupMemberSetById.entries()) {
+        if (
+          memberIds.has(relationship.sourceMiiId) &&
+          memberIds.has(relationship.targetMiiId)
+        ) {
+          map.get(groupId)?.push(relationship);
+        }
+      }
     }
 
     return map;
   }, [excludeLowStages, groups, islandData.relationships]);
+  const clusterViewModels = useMemo(
+    () =>
+      groups.map((group) => {
+        const groupRelationships = relationshipsByGroup.get(group.id) ?? [];
+        const memberById = new Map(group.members.map((member) => [member.id, member]));
+        const outgoingBySourceId = new Map<string, Relationship[]>();
+
+        for (const relationship of groupRelationships) {
+          const outgoing = outgoingBySourceId.get(relationship.sourceMiiId) ?? [];
+          outgoing.push(relationship);
+          outgoingBySourceId.set(relationship.sourceMiiId, outgoing);
+        }
+
+        return {
+          group,
+          clusterName: formatClusterName(group.members.map((member) => member.name)),
+          groupRelationships,
+          memberById,
+          outgoingBySourceId,
+        };
+      }),
+    [groups, relationshipsByGroup],
+  );
+
+  if (status === "loading") {
+    return <p>Loading island data...</p>;
+  }
 
   const toggleGroupExpanded = (groupId: string) => {
     setExpandedGroupIds((current) => {
@@ -115,9 +139,8 @@ export function ClustersPage() {
         />
       ) : (
         <section className={pageStyles.clusterGrid}>
-          {groups.map((group) => {
-            const clusterName = formatClusterName(group.members.map((member) => member.name));
-            const groupRelationships = relationshipsByGroup.get(group.id) ?? [];
+          {clusterViewModels.map(
+            ({ group, clusterName, groupRelationships, memberById, outgoingBySourceId }) => {
             const isExpanded = expandedGroupIds.has(group.id);
 
             return (
@@ -153,9 +176,7 @@ export function ClustersPage() {
                   <div className={pageStyles.clusterDetails}>
                     <div className={pageStyles.clusterMemberGrid}>
                       {group.members.map((member) => {
-                        const outgoingRelationships = groupRelationships.filter(
-                          (relationship) => relationship.sourceMiiId === member.id,
-                        );
+                        const outgoingRelationships = outgoingBySourceId.get(member.id) ?? [];
 
                         return (
                           <div key={member.id} className={pageStyles.item}>
@@ -165,9 +186,7 @@ export function ClustersPage() {
                             </span>
                             <div className={pageStyles.table}>
                               {outgoingRelationships.map((relationship) => {
-                                const targetMember = group.members.find(
-                                  (candidate) => candidate.id === relationship.targetMiiId,
-                                );
+                                const targetMember = memberById.get(relationship.targetMiiId);
 
                                 if (!targetMember) {
                                   return null;
@@ -202,7 +221,8 @@ export function ClustersPage() {
                 )}
               </Card>
             );
-          })}
+            },
+          )}
         </section>
       )}
     </div>

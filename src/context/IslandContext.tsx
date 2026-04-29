@@ -1,8 +1,10 @@
 import {
   createContext,
   startTransition,
+  useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type PropsWithChildren,
@@ -110,44 +112,87 @@ export function IslandProvider({
     };
   }, [adapter]);
 
-  const value: IslandContextValue = {
-    status,
-    errorMessage,
-    islandData,
-    adapterLabel: "Local storage adapter",
-    async addMii(input) {
+  const addMii = useCallback(
+    async (input: MiiInput) => {
       await persistUpdate(adapter, islandDataRef.current, setIslandData, (data) =>
         addMiiToIsland(data, input),
       );
     },
-    async updateMii(miiId, input) {
+    [adapter],
+  );
+
+  const updateMii = useCallback(
+    async (miiId: string, input: MiiInput) => {
       await persistUpdate(adapter, islandDataRef.current, setIslandData, (data) =>
         updateMiiInIsland(data, miiId, input),
       );
     },
-    async deleteMii(miiId) {
+    [adapter],
+  );
+
+  const deleteMii = useCallback(
+    async (miiId: string) => {
       await persistUpdate(adapter, islandDataRef.current, setIslandData, (data) =>
         deleteMiiFromIsland(data, miiId),
       );
     },
-    async addRelationshipPair(input) {
+    [adapter],
+  );
+
+  const addRelationshipPair = useCallback(
+    async (input: RelationshipPairInput) => {
       await persistUpdate(adapter, islandDataRef.current, setIslandData, (data) =>
         addRelationshipPairToIsland(data, input),
       );
     },
-    async updateRelationshipPair(relationshipId, input) {
+    [adapter],
+  );
+
+  const updateRelationshipPair = useCallback(
+    async (relationshipId: string, input: RelationshipPairInput) => {
       await persistUpdate(adapter, islandDataRef.current, setIslandData, (data) =>
         updateRelationshipPairInIsland(data, relationshipId, input),
       );
     },
-    async deleteRelationshipPair(relationshipId) {
+    [adapter],
+  );
+
+  const deleteRelationshipPair = useCallback(
+    async (relationshipId: string) => {
       await persistUpdate(adapter, islandDataRef.current, setIslandData, (data) =>
         deleteRelationshipPairFromIsland(data, relationshipId),
       );
     },
-    getStageDefinition,
-    relationshipConfig: RELATIONSHIP_STAGE_CONFIG,
-  };
+    [adapter],
+  );
+
+  const value: IslandContextValue = useMemo(
+    () => ({
+      status,
+      errorMessage,
+      islandData,
+      adapterLabel: "Local storage adapter",
+      addMii,
+      updateMii,
+      deleteMii,
+      addRelationshipPair,
+      updateRelationshipPair,
+      deleteRelationshipPair,
+      getStageDefinition,
+      relationshipConfig: RELATIONSHIP_STAGE_CONFIG,
+    }),
+    [
+      addMii,
+      addRelationshipPair,
+      deleteMii,
+      deleteRelationshipPair,
+      errorMessage,
+      islandData,
+      status,
+      updateMii,
+      updateRelationshipPair,
+    ],
+  );
 
   return <IslandContext.Provider value={value}>{children}</IslandContext.Provider>;
 }

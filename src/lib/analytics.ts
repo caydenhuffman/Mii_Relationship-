@@ -1,6 +1,5 @@
 import { RELATIONSHIP_TYPE_METADATA, RELATIONSHIP_TYPES } from "@/config/relationshipMetadata";
 import { RELATIONSHIP_STAGE_CONFIG, getStageDefinition } from "@/config/relationshipStages";
-import { findReciprocalRelationship } from "@/lib/islandMutations";
 import type { Mii, Relationship, RelationshipType } from "@/types/domain";
 
 const RELATIONSHIP_TYPE_PRIORITY: Record<RelationshipType, number> = {
@@ -58,32 +57,63 @@ export function getConnectionCount(miiId: string, relationships: Relationship[])
   return connectionIds.size;
 }
 
+export function buildConnectionCountMap(
+  miis: Mii[],
+  relationships: Relationship[],
+): Map<string, number> {
+  const connectionSets = new Map<string, Set<string>>();
+
+  for (const mii of miis) {
+    connectionSets.set(mii.id, new Set());
+  }
+
+  for (const relationship of relationships) {
+    const sourceConnections = connectionSets.get(relationship.sourceMiiId);
+    if (sourceConnections) {
+      sourceConnections.add(relationship.targetMiiId);
+    }
+
+    const targetConnections = connectionSets.get(relationship.targetMiiId);
+    if (targetConnections) {
+      targetConnections.add(relationship.sourceMiiId);
+    }
+  }
+
+  return new Map(
+    [...connectionSets.entries()].map(([miiId, connectedIds]) => [miiId, connectedIds.size]),
+  );
+}
+
 export function isPositiveSocialRelationshipType(relationshipType: RelationshipType) {
   return RELATIONSHIP_TYPE_METADATA[relationshipType].positiveSocial;
 }
 
 export function buildDashboardSummary(miis: Mii[], relationships: Relationship[]) {
-  const countByType = RELATIONSHIP_TYPES.reduce(
-    (accumulator, relationshipType) => {
-      accumulator[relationshipType] = relationships.filter(
-        (relationship) => relationship.relationshipType === relationshipType,
-      ).length;
-      return accumulator;
-    },
-    {} as Record<RelationshipType, number>,
-  );
+  const countByType = {} as Record<RelationshipType, number>;
+  for (const relationshipType of RELATIONSHIP_TYPES) {
+    countByType[relationshipType] = 0;
+  }
+  let positiveSocialCount = 0;
+  let exCount = 0;
+  let romanceCount = 0;
 
-  const positiveSocialCount = relationships.filter((relationship) =>
-    isPositiveSocialRelationshipType(relationship.relationshipType),
-  ).length;
+  for (const relationship of relationships) {
+    countByType[relationship.relationshipType] += 1;
 
-  const exCount = relationships.filter(
-    (relationship) => RELATIONSHIP_TYPE_METADATA[relationship.relationshipType].family === "ex",
-  ).length;
-
-  const romanceCount = relationships.filter((relationship) =>
-    ["Spouses", "Sweethearts"].includes(relationship.relationshipType),
-  ).length;
+    const metadata = RELATIONSHIP_TYPE_METADATA[relationship.relationshipType];
+    if (metadata.positiveSocial) {
+      positiveSocialCount += 1;
+    }
+    if (metadata.family === "ex") {
+      exCount += 1;
+    }
+    if (
+      relationship.relationshipType === "Spouses" ||
+      relationship.relationshipType === "Sweethearts"
+    ) {
+      romanceCount += 1;
+    }
+  }
 
   return {
     totalMiis: miis.length,
@@ -108,6 +138,13 @@ export function buildRankedRelationshipsForMii(
   relationships: Relationship[],
 ): RankedRelationship[] {
   const miiMap = new Map(miis.map((mii) => [mii.id, mii]));
+  const reciprocalMap = new Map<string, Relationship>();
+  for (const relationship of relationships) {
+    reciprocalMap.set(
+      `${relationship.sourceMiiId}|${relationship.targetMiiId}`,
+      relationship,
+    );
+  }
   const outgoingRelationships = relationships.filter(
     (relationship) => relationship.sourceMiiId === miiId,
   );
@@ -120,7 +157,9 @@ export function buildRankedRelationshipsForMii(
       }
 
       const stageIndex = getRelationshipStageIndex(relationship.stageKey);
-      const incomingRelationship = findReciprocalRelationship(relationships, relationship);
+      const incomingRelationship = reciprocalMap.get(
+        `${relationship.targetMiiId}|${relationship.sourceMiiId}`,
+      );
       const score =
         RELATIONSHIP_TYPE_PRIORITY[relationship.relationshipType] + Math.max(stageIndex, 0) * 12;
 
@@ -242,6 +281,12 @@ export function findFriendGroups(
   const { adjacency, strongEdges } = buildMutualStrongAdjacency(relationships, options);
   const cliqueMemberIds: string[][] = [];
   const groups: FriendGroup[] = [];
+  const strongEdgesBySource = new Map<string, Relationship[]>();
+  for (const relationship of strongEdges) {
+    const sourceList = strongEdgesBySource.get(relationship.sourceMiiId) ?? [];
+    sourceList.push(relationship);
+    strongEdgesBySource.set(relationship.sourceMiiId, sourceList);
+  }
 
   bronKerbosch(
     new Set<string>(),
@@ -263,11 +308,17 @@ export function findFriendGroups(
       return count + sharedFriends.length;
     }, 0);
 
-    const directedRelationshipCount = strongEdges.filter(
-      (relationship) =>
-        memberIds.includes(relationship.sourceMiiId) &&
-        memberIds.includes(relationship.targetMiiId),
-    ).length;
+    const memberSet = new Set(memberIds);
+    let directedRelationshipCount = 0;
+
+    for (const memberId of memberIds) {
+      const outgoing = strongEdgesBySource.get(memberId) ?? [];
+      for (const relationship of outgoing) {
+        if (memberSet.has(relationship.targetMiiId)) {
+          directedRelationshipCount += 1;
+        }
+      }
+    }
 
     groups.push({
       id: `cluster-${groups.length + 1}`,

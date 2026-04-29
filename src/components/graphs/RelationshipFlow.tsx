@@ -7,6 +7,8 @@ import type { Edge, Node } from "@xyflow/react";
 import MiiNode from "./MiiNode";
 import styles from "./RelationshipFlow.module.css";
 
+const NODE_TYPES = { miiNode: MiiNode };
+
 interface RelationshipFlowProps {
   title: string;
   description: string;
@@ -131,7 +133,7 @@ export function RelationshipFlow({
           fitView
           nodes={displayNodes}
           edges={displayEdges}
-          nodeTypes={{ miiNode: MiiNode }}
+          nodeTypes={NODE_TYPES}
           nodesDraggable={false}
           nodesConnectable={false}
           elementsSelectable={false}

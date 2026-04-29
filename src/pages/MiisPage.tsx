@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getPersonalityGroup, PERSONALITY_GROUPS } from "@/config/personalities";
-import { getConnectionCount } from "@/lib/analytics";
+import { buildConnectionCountMap } from "@/lib/analytics";
 import { useIsland } from "@/hooks/useIsland";
 import type { Mii } from "@/types/domain";
 import pageStyles from "./Page.module.css";
@@ -39,6 +39,10 @@ export function MiisPage() {
           return left.name.localeCompare(right.name);
         }),
     [deferredSearchValue, islandData.miis, personalityFilter, sortMode],
+  );
+  const connectionCountByMiiId = useMemo(
+    () => buildConnectionCountMap(islandData.miis, islandData.relationships),
+    [islandData.miis, islandData.relationships],
   );
 
   if (status === "loading") {
@@ -107,7 +111,7 @@ export function MiisPage() {
         <section className={pageStyles.miiGrid}>
           {filteredMiis.map((mii) => {
             const personalityGroup = getPersonalityGroup(mii.personalityType);
-            const connectionCount = getConnectionCount(mii.id, islandData.relationships);
+            const connectionCount = connectionCountByMiiId.get(mii.id) ?? 0;
 
             return (
               <Card key={mii.id}>

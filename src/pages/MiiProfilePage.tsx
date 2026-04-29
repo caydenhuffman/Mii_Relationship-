@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { MiiFormModal } from "@/components/forms/MiiFormModal";
 import { RelationshipFormModal } from "@/components/forms/RelationshipFormModal";
@@ -130,12 +130,23 @@ export function MiiProfilePage() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isCreateRelationshipOpen, setIsCreateRelationshipOpen] = useState(false);
   const [editingRelationship, setEditingRelationship] = useState<Relationship | undefined>();
+  const mii = islandData.miis.find((entry) => entry.id === miiId);
+  const selectedMiiId = mii?.id ?? "";
+  const relationshipRankings = useMemo(
+    () =>
+      selectedMiiId
+        ? buildRankedRelationshipsForMii(selectedMiiId, islandData.miis, islandData.relationships)
+        : [],
+    [selectedMiiId, islandData.miis, islandData.relationships],
+  );
+  const connectionCount = useMemo(
+    () => (selectedMiiId ? getConnectionCount(selectedMiiId, islandData.relationships) : 0),
+    [selectedMiiId, islandData.relationships],
+  );
 
   if (status === "loading") {
     return <p>Loading island data...</p>;
   }
-
-  const mii = islandData.miis.find((entry) => entry.id === miiId);
 
   if (!mii) {
     return (
@@ -149,12 +160,6 @@ export function MiiProfilePage() {
   }
 
   const personalityGroup = getPersonalityGroup(mii.personalityType);
-  const relationshipRankings = buildRankedRelationshipsForMii(
-    mii.id,
-    islandData.miis,
-    islandData.relationships,
-  );
-  const connectionCount = getConnectionCount(mii.id, islandData.relationships);
 
   return (
     <div className={pageStyles.stack}>
