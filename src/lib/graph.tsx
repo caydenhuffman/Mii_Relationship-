@@ -355,9 +355,12 @@ function createClusterEdge(
   relationship: Relationship,
   sourceHandle: string,
   targetHandle: string,
+  miiMap: Map<string, Mii>,
 ): FlowEdge {
   const metadata = RELATIONSHIP_TYPE_METADATA[relationship.relationshipType];
   const isCrush = metadata.family === "oneSidedLove";
+  const sourceName = miiMap.get(relationship.sourceMiiId)?.name ?? relationship.sourceMiiId;
+  const targetName = miiMap.get(relationship.targetMiiId)?.name ?? relationship.targetMiiId;
 
   return {
     id: relationship.id,
@@ -388,6 +391,10 @@ function createClusterEdge(
     },
     data: {
       hoverLabel: metadata.shortLabel,
+      relationshipTypes: [relationship.relationshipType],
+      sourceStageKey: relationship.stageKey,
+      sourceName,
+      targetName,
     },
     type: "default",
   };
@@ -417,6 +424,7 @@ export function buildClusterOverviewGraph(members: Mii[], relationships: Relatio
   });
 
   const nodeById = new Map(nodes.map((node) => [node.id, node]));
+  const miiMap = new Map(members.map((mii) => [mii.id, mii]));
 
   const edges = relationships.map((relationship) => {
     const sourceNode = nodeById.get(relationship.sourceMiiId);
@@ -431,7 +439,7 @@ export function buildClusterOverviewGraph(members: Mii[], relationships: Relatio
         ? `${getHandleSide(targetNode.position, sourceNode.position)}-target`
         : "left-target";
 
-    return createClusterEdge(relationship, sourceHandle, targetHandle);
+    return createClusterEdge(relationship, sourceHandle, targetHandle, miiMap);
   });
 
   return { nodes, edges };
