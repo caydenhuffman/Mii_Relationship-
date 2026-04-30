@@ -6,9 +6,11 @@
 
 .backdrop {
   background:
+    radial-gradient(circle, var(--surface-dot) 1px, transparent 1px),
     radial-gradient(circle at 20% 10%, rgba(255, 216, 119, 0.34), transparent 14%),
     radial-gradient(circle at 80% 15%, rgba(130, 202, 255, 0.32), transparent 15%),
     linear-gradient(180deg, #fff8ea 0%, #fffdf6 55%, #fff7e7 100%);
+  background-size: 22px 22px, auto, auto, auto;
   inset: 0;
   position: fixed;
   z-index: -1;

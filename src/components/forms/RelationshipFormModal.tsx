@@ -1,11 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useState,
+  type ChangeEvent,
+  type SelectHTMLAttributes,
+} from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import {
-  RELATIONSHIP_TYPE_METADATA,
-  RELATIONSHIP_TYPES,
-} from "@/config/relationshipMetadata";
+import { RELATIONSHIP_TYPE_METADATA } from "@/config/relationshipMetadata";
 import { RELATIONSHIP_STAGE_CONFIG } from "@/config/relationshipStages";
 import { relationshipPairFormSchema } from "@/lib/schemas";
 import type {
@@ -32,7 +36,159 @@ interface RelationshipFormModalProps {
   onSubmit(input: RelationshipPairInput): Promise<void>;
 }
 
+type RelationshipTypeGroupKey =
+  | "romance"
+  | "friend"
+  | "family"
+  | "acquaintance"
+  | "crush"
+  | "ex";
+
+interface RelationshipTypeGroupConfig {
+  key: RelationshipTypeGroupKey;
+  label: string;
+  subtitle: string;
+  options: RelationshipType[];
+}
+
+interface RelationshipTypePrimaryOption {
+  key: string;
+  label: string;
+  value?: RelationshipType;
+  groupKey?: RelationshipTypeGroupKey;
+  color: string;
+  surfaceColor: string;
+  surfaceBorder: string;
+  textColor: string;
+}
+
+interface PickerSelectProps
+  extends Omit<SelectHTMLAttributes<HTMLSelectElement>, "value" | "onChange"> {
+  value: RelationshipType;
+  onChange(event: ChangeEvent<HTMLSelectElement>): void;
+}
+
 const DEFAULT_RELATIONSHIP_TYPE: RelationshipType = "Friends";
+const LITTLE_GUY_URL = `${import.meta.env.BASE_URL}little_guy.svg`;
+const RELATIONSHIP_TYPE_GROUPS: RelationshipTypeGroupConfig[] = [
+  {
+    key: "romance",
+    label: "Romance",
+    subtitle: "Spouses, Sweethearts",
+    options: ["Spouses", "Sweethearts"],
+  },
+  {
+    key: "friend",
+    label: "Friend",
+    subtitle: "Friends",
+    options: ["Friends"],
+  },
+  {
+    key: "family",
+    label: "Family",
+    subtitle: "Family, Relatives",
+    options: ["Family", "Relatives"],
+  },
+  {
+    key: "acquaintance",
+    label: "Acquaintance",
+    subtitle: "Acquaintances",
+    options: ["Acquaintances"],
+  },
+  {
+    key: "crush",
+    label: "Crush / One-sided Love",
+    subtitle: "One-sided love (friend), One-sided love (acquaintance)",
+    options: ["One-sided love (friend)", "One-sided love (acquaintance)"],
+  },
+  {
+    key: "ex",
+    label: "Ex",
+    subtitle: "Ex-spouses, Ex-sweethearts, Ex-friends",
+    options: ["Ex-spouses", "Ex-sweethearts", "Ex-friends"],
+  },
+];
+
+const RELATIONSHIP_TYPE_PRIMARY_OPTIONS: RelationshipTypePrimaryOption[] = [
+  {
+    key: "Friends",
+    label: "Friend",
+    value: "Friends",
+    color: "var(--edge-friends)",
+    surfaceColor: "var(--surface-friends)",
+    surfaceBorder: "var(--surface-friends-border)",
+    textColor: "var(--surface-friends-text)",
+  },
+  {
+    key: "Acquaintances",
+    label: "Acquaintance",
+    value: "Acquaintances",
+    color: "var(--edge-acquaintances)",
+    surfaceColor: "var(--surface-acquaintance)",
+    surfaceBorder: "var(--surface-acquaintance-border)",
+    textColor: "var(--surface-acquaintance-text)",
+  },
+  {
+    key: "Spouses",
+    label: "Spouse",
+    value: "Spouses",
+    color: "var(--edge-spouses)",
+    surfaceColor: "var(--surface-spouses)",
+    surfaceBorder: "var(--surface-spouses-border)",
+    textColor: "var(--surface-spouses-text)",
+  },
+  {
+    key: "Sweethearts",
+    label: "Sweetheart",
+    value: "Sweethearts",
+    color: "var(--edge-sweethearts)",
+    surfaceColor: "var(--surface-sweethearts)",
+    surfaceBorder: "var(--surface-sweethearts-border)",
+    textColor: "var(--surface-sweethearts-text)",
+  },
+  {
+    key: "Family",
+    label: "Family",
+    value: "Family",
+    color: "var(--edge-family)",
+    surfaceColor: "var(--surface-family)",
+    surfaceBorder: "var(--surface-family-border)",
+    textColor: "var(--surface-family-text)",
+  },
+  {
+    key: "Relatives",
+    label: "Relatives",
+    value: "Relatives",
+    color: "var(--edge-relatives)",
+    surfaceColor: "var(--surface-family)",
+    surfaceBorder: "var(--surface-family-border)",
+    textColor: "var(--surface-family-text)",
+  },
+  {
+    key: "crush",
+    label: "Crush",
+    groupKey: "crush",
+    color: "var(--edge-one-sided-friend)",
+    surfaceColor: "var(--surface-crush)",
+    surfaceBorder: "var(--surface-crush-border)",
+    textColor: "var(--surface-crush-text)",
+  },
+  {
+    key: "ex",
+    label: "Ex",
+    groupKey: "ex",
+    color: "var(--edge-exes)",
+    surfaceColor: "var(--surface-neutral)",
+    surfaceBorder: "var(--surface-neutral-border)",
+    textColor: "var(--surface-neutral-text)",
+  },
+];
+
+const GROUP_BY_RELATIONSHIP_TYPE = new Map<RelationshipType, RelationshipTypeGroupConfig>(
+  RELATIONSHIP_TYPE_GROUPS.flatMap((group) =>
+    group.options.map((relationshipType) => [relationshipType, group] as const),
+  ),
+);
 
 function getInitialValues(
   miis: Mii[],
@@ -63,6 +219,174 @@ function getInitialValues(
         inverseRelationshipType: DEFAULT_RELATIONSHIP_TYPE,
         inverseStageKey: fallbackStageKey,
       };
+}
+
+function getFirstStageKey(relationshipType: RelationshipType) {
+  return RELATIONSHIP_STAGE_CONFIG.stagesByType[relationshipType][0]?.stageKey ?? "";
+}
+
+function getGroupForRelationshipType(relationshipType: RelationshipType) {
+  return GROUP_BY_RELATIONSHIP_TYPE.get(relationshipType) ?? RELATIONSHIP_TYPE_GROUPS[0];
+}
+
+function LittleGuyIcon({
+  color,
+  small = false,
+}: {
+  color: string;
+  small?: boolean;
+}) {
+  return (
+    <span
+      className={`${styles.littleGuyIcon} ${small ? styles.littleGuyIconSmall : ""}`.trim()}
+      style={{
+        backgroundColor: color,
+        WebkitMask: `url("${LITTLE_GUY_URL}") center / contain no-repeat`,
+        mask: `url("${LITTLE_GUY_URL}") center / contain no-repeat`,
+      }}
+      aria-hidden="true"
+    />
+  );
+}
+
+function RelationshipTypePicker({
+  label,
+  selectedGroupKey,
+  selectedType,
+  exactSelectionReady,
+  onGroupChange,
+  onTypeChange,
+  description,
+  helperText,
+  error,
+  selectProps,
+}: {
+  label: string;
+  selectedGroupKey: RelationshipTypeGroupKey;
+  selectedType: RelationshipType;
+  exactSelectionReady: boolean;
+  onGroupChange(groupKey: RelationshipTypeGroupKey): void;
+  onTypeChange(relationshipType: RelationshipType): void;
+  description: string;
+  helperText?: string;
+  error?: string;
+  selectProps: PickerSelectProps;
+}) {
+  const selectId = useId();
+  const descriptionId = useId();
+  const helperId = useId();
+  const errorId = useId();
+  const activeGroup =
+    RELATIONSHIP_TYPE_GROUPS.find((group) => group.key === selectedGroupKey) ??
+    getGroupForRelationshipType(selectedType);
+  const describedBy = [descriptionId, helperText ? helperId : null, error ? errorId : null]
+    .filter(Boolean)
+    .join(" ");
+  const needsExactTypeSelection =
+    selectedGroupKey === "crush" || selectedGroupKey === "ex";
+  const primaryDescription = exactSelectionReady
+    ? description
+    : needsExactTypeSelection
+      ? `Pick the exact ${activeGroup.label.toLowerCase()} type to unlock relationship levels.`
+      : description;
+
+  return (
+    <div className={styles.typePicker}>
+      <label htmlFor={selectId}>{label}</label>
+      <select
+        {...selectProps}
+        id={selectId}
+        className={styles.visuallyHiddenSelect}
+        tabIndex={-1}
+        aria-describedby={describedBy || undefined}
+      >
+        {RELATIONSHIP_TYPE_GROUPS.flatMap((group) =>
+          group.options.map((relationshipType) => (
+            <option key={relationshipType} value={relationshipType}>
+              {relationshipType}
+            </option>
+          )),
+        )}
+      </select>
+
+      <div className={styles.primaryTypeGrid}>
+        {RELATIONSHIP_TYPE_PRIMARY_OPTIONS.map((option) => {
+          const isSelected = option.value
+            ? selectedType === option.value && exactSelectionReady
+            : selectedGroupKey === option.groupKey;
+
+          return (
+            <button
+              key={option.key}
+              type="button"
+              className={`${styles.primaryTypeCard} ${isSelected ? styles.primaryTypeCardSelected : ""}`.trim()}
+              style={{
+                background: option.surfaceColor,
+                borderColor: isSelected ? "var(--text-primary)" : option.surfaceBorder,
+                color: option.textColor,
+              }}
+              onClick={() =>
+                option.value
+                  ? onTypeChange(option.value)
+                  : option.groupKey
+                    ? onGroupChange(option.groupKey)
+                    : undefined
+              }
+            >
+              <LittleGuyIcon color={option.color} small />
+              <span>{option.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {needsExactTypeSelection ? (
+        <div className={styles.exactTypeSection}>
+          <div className={styles.exactTypeHeader}>
+            <strong>Exact relationship type</strong>
+            <span>{activeGroup.label}</span>
+          </div>
+          <div className={styles.exactTypeGrid}>
+            {activeGroup.options.map((relationshipType) => {
+              const metadata = RELATIONSHIP_TYPE_METADATA[relationshipType];
+              const isSelected = exactSelectionReady && relationshipType === selectedType;
+
+              return (
+                <button
+                  key={relationshipType}
+                  type="button"
+                  className={`${styles.exactTypeCard} ${isSelected ? styles.exactTypeCardSelected : ""}`.trim()}
+                  style={{
+                    background: metadata.surfaceColor,
+                    borderColor: isSelected ? "var(--text-primary)" : metadata.surfaceBorder,
+                    color: metadata.textColor,
+                  }}
+                  onClick={() => onTypeChange(relationshipType)}
+                >
+                  <LittleGuyIcon color={metadata.color} small />
+                  <span>{relationshipType}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
+      <span id={descriptionId} className={styles.helper}>
+        {primaryDescription}
+      </span>
+      {helperText ? (
+        <span id={helperId} className={styles.helper}>
+          {helperText}
+        </span>
+      ) : null}
+      {error ? (
+        <span id={errorId} className={styles.error}>
+          {error}
+        </span>
+      ) : null}
+    </div>
+  );
 }
 
 export function RelationshipFormModal({
@@ -96,6 +420,7 @@ export function RelationshipFormModal({
     resolver: zodResolver(relationshipPairFormSchema),
     defaultValues,
   });
+
   const [inverseTypeLinked, setInverseTypeLinked] = useState(
     defaultValues.relationshipType === defaultValues.inverseRelationshipType,
   );
@@ -103,6 +428,13 @@ export function RelationshipFormModal({
     defaultValues.relationshipType === defaultValues.inverseRelationshipType &&
       defaultValues.stageKey === defaultValues.inverseStageKey,
   );
+  const [selectedGroupKey, setSelectedGroupKey] = useState<RelationshipTypeGroupKey>(
+    getGroupForRelationshipType(defaultValues.relationshipType).key,
+  );
+  const [selectedInverseGroupKey, setSelectedInverseGroupKey] =
+    useState<RelationshipTypeGroupKey>(
+      getGroupForRelationshipType(defaultValues.inverseRelationshipType).key,
+    );
 
   const selectedSourceMiiId = watch("sourceMiiId");
   const selectedTargetMiiId = watch("targetMiiId");
@@ -163,6 +495,11 @@ export function RelationshipFormModal({
   const targetMiiName =
     miis.find((mii) => mii.id === selectedTargetMiiId)?.name ?? "Target Mii";
 
+  const exactTypeReady =
+    getGroupForRelationshipType(selectedType).key === selectedGroupKey;
+  const exactInverseTypeReady =
+    getGroupForRelationshipType(selectedInverseType).key === selectedInverseGroupKey;
+
   useEffect(() => {
     if (!open) {
       return;
@@ -183,6 +520,10 @@ export function RelationshipFormModal({
     setInverseStageLinked(
       nextDefaults.relationshipType === nextDefaults.inverseRelationshipType &&
         nextDefaults.stageKey === nextDefaults.inverseStageKey,
+    );
+    setSelectedGroupKey(getGroupForRelationshipType(nextDefaults.relationshipType).key);
+    setSelectedInverseGroupKey(
+      getGroupForRelationshipType(nextDefaults.inverseRelationshipType).key,
     );
   }, [clearErrors, initialInverseValue, initialValue, miis, open, preferredSourceMiiId, reset]);
 
@@ -213,10 +554,6 @@ export function RelationshipFormModal({
   const inverseRelationshipTypeRegister = register("inverseRelationshipType");
   const inverseStageKeyRegister = register("inverseStageKey");
 
-  function getFirstStageKey(relationshipType: RelationshipType) {
-    return RELATIONSHIP_STAGE_CONFIG.stagesByType[relationshipType][0]?.stageKey ?? "";
-  }
-
   function syncInverseStage(nextType: RelationshipType, nextStageKey: string) {
     if (!inverseStageLinked) {
       return;
@@ -228,6 +565,73 @@ export function RelationshipFormModal({
     }
 
     setValue("inverseStageKey", getFirstStageKey(selectedInverseType));
+  }
+
+  function applyRelationshipType(nextType: RelationshipType) {
+    relationshipTypeRegister.onChange({
+      target: { name: relationshipTypeRegister.name, value: nextType },
+    });
+
+    const nextStageKey = getFirstStageKey(nextType);
+    setValue("stageKey", nextStageKey);
+    setSelectedGroupKey(getGroupForRelationshipType(nextType).key);
+
+    if (inverseTypeLinked) {
+      inverseRelationshipTypeRegister.onChange({
+        target: { name: inverseRelationshipTypeRegister.name, value: nextType },
+      });
+      setValue("inverseRelationshipType", nextType);
+      setValue("inverseStageKey", nextStageKey);
+      setSelectedInverseGroupKey(getGroupForRelationshipType(nextType).key);
+    } else {
+      syncInverseStage(nextType, nextStageKey);
+    }
+  }
+
+  function applyInverseRelationshipType(nextType: RelationshipType) {
+    inverseRelationshipTypeRegister.onChange({
+      target: { name: inverseRelationshipTypeRegister.name, value: nextType },
+    });
+
+    const nextStageKey =
+      nextType === selectedType ? selectedStageKey : getFirstStageKey(nextType);
+
+    setValue("inverseRelationshipType", nextType);
+    setValue("inverseStageKey", nextStageKey);
+    setSelectedInverseGroupKey(getGroupForRelationshipType(nextType).key);
+    setInverseTypeLinked(nextType === selectedType);
+    setInverseStageLinked(
+      nextType === selectedType && nextStageKey === selectedStageKey,
+    );
+  }
+
+  function handleGroupChange(groupKey: RelationshipTypeGroupKey) {
+    const group = RELATIONSHIP_TYPE_GROUPS.find((item) => item.key === groupKey);
+
+    if (!group) {
+      return;
+    }
+
+    setSelectedGroupKey(group.key);
+
+    if (group.options.length === 1) {
+      applyRelationshipType(group.options[0]);
+    }
+  }
+
+  function handleInverseGroupChange(groupKey: RelationshipTypeGroupKey) {
+    const group = RELATIONSHIP_TYPE_GROUPS.find((item) => item.key === groupKey);
+
+    if (!group) {
+      return;
+    }
+
+    setSelectedInverseGroupKey(group.key);
+    setInverseTypeLinked(false);
+
+    if (group.options.length === 1) {
+      applyInverseRelationshipType(group.options[0]);
+    }
   }
 
   return (
@@ -288,41 +692,30 @@ export function RelationshipFormModal({
           </label>
         </div>
 
-        <div className={styles.grid}>
-          <label>
-            Relationship type
-            <select
-              {...relationshipTypeRegister}
-              onChange={(event) => {
-                relationshipTypeRegister.onChange(event);
-
-                const nextType = event.target.value as RelationshipType;
-                const nextStageKey = getFirstStageKey(nextType);
-                setValue("stageKey", nextStageKey);
-
-                if (inverseTypeLinked) {
-                  setValue("inverseRelationshipType", nextType);
-                  setValue("inverseStageKey", nextStageKey);
-                } else {
-                  syncInverseStage(nextType, nextStageKey);
-                }
-              }}
-            >
-              {RELATIONSHIP_TYPES.map((relationshipType) => (
-                <option key={relationshipType} value={relationshipType}>
-                  {relationshipType}
-                </option>
-              ))}
-            </select>
-            <span className={styles.helper}>
-              {RELATIONSHIP_TYPE_METADATA[selectedType].description}
-            </span>
-          </label>
+        <div className={styles.pickerStack}>
+          <RelationshipTypePicker
+            label="Relationship type"
+            selectedGroupKey={selectedGroupKey}
+            selectedType={selectedType}
+            exactSelectionReady={exactTypeReady}
+            onGroupChange={handleGroupChange}
+            onTypeChange={applyRelationshipType}
+            description={RELATIONSHIP_TYPE_METADATA[selectedType].description}
+            error={errors.relationshipType?.message}
+            selectProps={{
+              ...relationshipTypeRegister,
+              value: selectedType,
+              onChange: (event: ChangeEvent<HTMLSelectElement>) => {
+                applyRelationshipType(event.target.value as RelationshipType);
+              },
+            }}
+          />
 
           <label>
             Relationship level
             <select
               {...stageKeyRegister}
+              disabled={!exactTypeReady}
               onChange={(event) => {
                 stageKeyRegister.onChange(event);
                 syncInverseStage(selectedType, event.target.value);
@@ -342,53 +735,38 @@ export function RelationshipFormModal({
 
         {selectedStage ? (
           <div className={styles.stageCard}>
-            <strong>{sourceMiiName} → {targetMiiName}</strong>
+            <strong>{`${sourceMiiName} -> ${targetMiiName}`}</strong>
             <div>
               {selectedType}: {selectedStage.label}
             </div>
           </div>
         ) : null}
 
-        <div className={styles.grid}>
-          <label>
-            Inverse relationship type
-            <select
-              {...inverseRelationshipTypeRegister}
-              onChange={(event) => {
-                inverseRelationshipTypeRegister.onChange(event);
-
-                const nextType = event.target.value as RelationshipType;
-                const nextStageKey =
-                  nextType === selectedType
-                    ? selectedStageKey
-                    : getFirstStageKey(nextType);
-
-                setValue("inverseStageKey", nextStageKey);
-                setInverseTypeLinked(nextType === selectedType);
-                setInverseStageLinked(
-                  nextType === selectedType && nextStageKey === selectedStageKey,
-                );
-              }}
-            >
-              {RELATIONSHIP_TYPES.map((relationshipType) => (
-                <option key={`inverse-${relationshipType}`} value={relationshipType}>
-                  {relationshipType}
-                </option>
-              ))}
-            </select>
-            <span className={styles.helper}>
-              {RELATIONSHIP_TYPE_METADATA[selectedInverseType].description}
-            </span>
-            <span className={styles.helper}>
-              Starts mirrored from the first Mii, but you can change it if the feeling is
-              different.
-            </span>
-          </label>
+        <div className={styles.pickerStack}>
+          <RelationshipTypePicker
+            label="Inverse relationship type"
+            selectedGroupKey={selectedInverseGroupKey}
+            selectedType={selectedInverseType}
+            exactSelectionReady={exactInverseTypeReady}
+            onGroupChange={handleInverseGroupChange}
+            onTypeChange={applyInverseRelationshipType}
+            description={RELATIONSHIP_TYPE_METADATA[selectedInverseType].description}
+            helperText="Starts mirrored from the first Mii, but you can change it if the feeling is different."
+            error={errors.inverseRelationshipType?.message}
+            selectProps={{
+              ...inverseRelationshipTypeRegister,
+              value: selectedInverseType,
+              onChange: (event: ChangeEvent<HTMLSelectElement>) => {
+                applyInverseRelationshipType(event.target.value as RelationshipType);
+              },
+            }}
+          />
 
           <label>
             Inverse relationship level
             <select
               {...inverseStageKeyRegister}
+              disabled={!exactInverseTypeReady}
               onChange={(event) => {
                 inverseStageKeyRegister.onChange(event);
                 setInverseStageLinked(
@@ -411,7 +789,7 @@ export function RelationshipFormModal({
 
         {selectedInverseStage ? (
           <div className={styles.stageCard}>
-            <strong>{targetMiiName} → {sourceMiiName}</strong>
+            <strong>{`${targetMiiName} -> ${sourceMiiName}`}</strong>
             <div>
               {selectedInverseType}: {selectedInverseStage.label}
             </div>
@@ -424,7 +802,13 @@ export function RelationshipFormModal({
 
         <Button
           type="submit"
-          disabled={isSubmitting || miis.length < 2 || availableTargetMiis.length === 0}
+          disabled={
+            isSubmitting ||
+            miis.length < 2 ||
+            availableTargetMiis.length === 0 ||
+            !exactTypeReady ||
+            !exactInverseTypeReady
+          }
         >
           {isSubmitting
             ? "Saving..."

@@ -64,6 +64,19 @@
 .legendItemDisabled {
   opacity: 0.5;
   background: #f8f6f2;
+  cursor: not-allowed;
+  pointer-events: auto;
+}
+
+.legendItemDisabled:hover {
+  background: #f8f6f2;
+  transform: none;
+  box-shadow: 2px 2px 0 0 oklch(0.22 0.02 50);
+}
+
+.legendItemDisabled:active {
+  transform: none;
+  box-shadow: 2px 2px 0 0 oklch(0.22 0.02 50);
 }
 
 .legendSwatch {
@@ -75,7 +88,7 @@
 
 .canvas {
   background:
-    radial-gradient(circle, rgba(0, 0, 0, 0.06) 1px, transparent 1px),
+    radial-gradient(circle, var(--surface-dot) 1px, transparent 1px),
     linear-gradient(180deg, #fffefb, #fff8ef);
   background-size: 18px 18px, auto;
   border: 3px solid var(--text-primary);

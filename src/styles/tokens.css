@@ -11,6 +11,7 @@
   --surface-panel: oklch(0.995 0.01 90);
   --surface-panel-soft: oklch(0.985 0.012 90);
   --surface-tint: oklch(0.975 0.018 100);
+  --surface-dot: oklch(0.32 0.02 55 / 0.11);
   --line-soft: oklch(0.22 0.02 50 / 0.18);
   --line-strong: oklch(0.22 0.02 50 / 0.34);
   --text-primary: oklch(0.22 0.02 50);

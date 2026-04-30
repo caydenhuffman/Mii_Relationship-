@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useIsland } from "@/hooks/useIsland";
-import { getPersonalityGroup } from "@/config/personalities";
+import { PERSONALITY_TYPE_COLORS, getPersonalityGroup } from "@/config/personalities";
 import { RELATIONSHIP_TYPE_METADATA } from "@/config/relationshipMetadata";
 import {
   type RankedRelationship,
@@ -212,13 +212,26 @@ export function MiiProfilePage() {
 
       <Card className={pageStyles.heroCard}>
         <div className={pageStyles.heroMeta}>
-          <span
-            className={pageStyles.pill}
-            style={{ background: `${personalityGroup.colorToken}26`, color: "var(--text-primary)" }}
-          >
-            {personalityGroup.group}
-          </span>
-          <span className={pageStyles.tag}>{mii.personalityType}</span>
+          <div className={pageStyles.personalityCombo}>
+            <span
+              className={pageStyles.personalityGroupPill}
+              style={{
+                background: personalityGroup.colorToken,
+                color: "white",
+              }}
+            >
+              {personalityGroup.group}
+            </span>
+            <span
+              className={pageStyles.personalityTypePill}
+              style={{
+                background: PERSONALITY_TYPE_COLORS[mii.personalityType],
+                color: "var(--text-primary)",
+              }}
+            >
+              {mii.personalityType}
+            </span>
+          </div>
           <span className={pageStyles.tag}>Level {mii.level}</span>
           <span className={pageStyles.tag}>{connectionCount} connections</span>
         </div>

@@ -6,9 +6,9 @@ import styles from "./AppShell.module.css";
 const navItems = [
   { to: "/", label: "Dashboard", end: true },
   { to: "/miis", label: "Miis" },
-  { to: "/graph", label: "Full Graph" },
-  { to: "/graph/focus", label: "Focused Graph" },
-  { to: "/clusters", label: "Clusters" },
+  { to: "/graph", label: "Full Graph", end: true },
+  { to: "/graph/focus", label: "Focused Graph", end: true },
+  { to: "/clusters", label: "Clusters", end: true },
 ];
 
 export function AppShell({ children }: PropsWithChildren) {

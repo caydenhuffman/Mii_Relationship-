@@ -1,5 +1,9 @@
 import { RELATIONSHIP_STAGE_CONFIG } from "@/config/relationshipStages";
-import { buildDashboardSummary, findFriendGroups } from "@/lib/analytics";
+import {
+  buildDashboardSummary,
+  buildMiiRelationshipSummaryMap,
+  findFriendGroups,
+} from "@/lib/analytics";
 import { fixtureMiis, sampleIslandData } from "@/tests/fixtures";
 import type { Relationship } from "@/types/domain";
 
@@ -18,6 +22,34 @@ describe("analytics helpers", () => {
     expect(summary.countByType.Sweethearts).toBe(2);
     expect(summary.countByType.Acquaintances).toBe(1);
     expect(summary.countByType.Family).toBe(1);
+    expect(summary.averageLevel).toBeCloseTo(16.833, 2);
+    expect(summary.mostConnectedMii?.mii.name).toBe("Alice");
+    expect(summary.mostCloseFriendsMii?.mii.name).toBe("Alice");
+    expect(summary.mostCommonPersonalityGroup?.group).toBe("Reserved");
+    expect(summary.friendlessCount).toBe(4);
+  });
+
+  it("counts one-sided love toward a friend as a friend tie for dashboard summaries", () => {
+    const crushOnFriendStageKey =
+      RELATIONSHIP_STAGE_CONFIG.stagesByType["One-sided love (friend)"][2].stageKey;
+    const relationships: Relationship[] = [
+      {
+        id: "rel-a-b-crush",
+        sourceMiiId: "mii-alice",
+        targetMiiId: "mii-bob",
+        relationshipType: "One-sided love (friend)",
+        stageKey: crushOnFriendStageKey,
+        createdAt: "2026-04-26T18:00:00.000Z",
+        updatedAt: "2026-04-26T18:00:00.000Z",
+      },
+    ];
+
+    const summary = buildDashboardSummary(fixtureMiis.slice(0, 2), relationships);
+    const miiSummaryMap = buildMiiRelationshipSummaryMap(fixtureMiis.slice(0, 2), relationships);
+
+    expect(summary.friendlessCount).toBe(1);
+    expect(summary.miisNeedingFriends[0].mii.id).toBe("mii-bob");
+    expect(miiSummaryMap.get("mii-alice")?.friendCount).toBe(1);
   });
 
   it("detects only 3+ maximal cliques of strong mutual relationships", () => {

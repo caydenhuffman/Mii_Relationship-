@@ -5,7 +5,7 @@
   height: 500px;
   overflow: hidden;
   background:
-    radial-gradient(circle, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+    radial-gradient(circle, var(--surface-dot) 1px, transparent 1px),
     linear-gradient(180deg, #fffefb, #fff7ed);
   background-size: 18px 18px, auto;
   box-shadow: 4px 4px 0 0 oklch(0.22 0.02 50);
@@ -65,5 +65,4 @@
   font-weight: 700;
   letter-spacing: -0.01em;
 }
-
 

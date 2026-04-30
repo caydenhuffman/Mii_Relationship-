@@ -345,6 +345,116 @@
   gap: 0.75rem;
 }
 
+.dashboardInsightList {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.dashboardInsightCard {
+  background:
+    radial-gradient(circle, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+    linear-gradient(180deg, #fffefb, #fff8ef);
+  background-size: 18px 18px, auto;
+  border: 2px solid var(--text-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: 2px 2px 0 0 oklch(0.22 0.02 50);
+  display: grid;
+  gap: 0.7rem;
+  padding: 1rem;
+}
+
+.dashboardLinkCard {
+  color: inherit;
+  display: block;
+  text-decoration: none;
+}
+
+.dashboardLinkCard .dashboardInsightCard {
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.dashboardLinkCard:hover .dashboardInsightCard,
+.dashboardLinkCard:focus-visible .dashboardInsightCard {
+  box-shadow: 4px 4px 0 0 oklch(0.22 0.02 50);
+  transform: translate(-1px, -1px);
+}
+
+.dashboardLeadName {
+  color: var(--text-primary);
+  font-family: "Fredoka", "Arial Rounded MT Bold", "Trebuchet MS", sans-serif;
+  font-size: 1.18rem;
+  margin: 0.2rem 0 0;
+}
+
+.dashboardHelperNote {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  margin: 0.45rem 0 0;
+}
+
+.dashboardHelperNote strong {
+  color: var(--text-secondary);
+}
+
+.dashboardSubcopy {
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.metricStack {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.metricRow {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.metricLabelRow {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.metricTitleWrap {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.55rem;
+}
+
+.metricDot {
+  border: 2px solid var(--text-primary);
+  border-radius: 999px;
+  box-shadow: 1px 1px 0 0 oklch(0.22 0.02 50);
+  display: inline-block;
+  height: 0.95rem;
+  width: 0.95rem;
+}
+
+.metricValue {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.metricTrack {
+  background: rgba(255, 255, 255, 0.8);
+  border: 2px solid var(--text-primary);
+  border-radius: 999px;
+  box-shadow: 2px 2px 0 0 oklch(0.22 0.02 50);
+  height: 1rem;
+  overflow: hidden;
+}
+
+.metricFill {
+  border-right: 2px solid rgba(0, 0, 0, 0.16);
+  border-radius: 999px;
+  height: 100%;
+  min-width: 0.4rem;
+}
+
 .linkButton {
   color: inherit;
   text-decoration: none;
@@ -366,7 +476,10 @@
 }
 
 .inlineBackLink::before {
-  content: "<-";
+  content: "☚";
+  display: inline-block;
+  font-size: 1.35rem;
+  line-height: 1;
 }
 
 .clusterStatPill {

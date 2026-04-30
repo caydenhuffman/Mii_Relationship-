@@ -178,6 +178,7 @@ export function RelationshipFlow({
             return (
               <button
                 key={item.label}
+                type="button"
                 className={`${styles.legendItem} ${isDisabled ? styles.legendItemDisabled : ""}`}
                 onClick={() => {
                   setDisabledRelationshipTypes((prev) => {
